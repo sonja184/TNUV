@@ -6,6 +6,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun LoginScreen(
@@ -14,6 +15,9 @@ fun LoginScreen(
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var errorMessage by remember { mutableStateOf("") }
+
+    val auth = FirebaseAuth.getInstance()
 
     Column(
         modifier = Modifier
@@ -55,10 +59,37 @@ fun LoginScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
+        if (errorMessage.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Text(
+                text = errorMessage,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
+
         Spacer(modifier = Modifier.height(24.dp))
 
         Button(
-            onClick = onLoginClick,
+            onClick = {
+                errorMessage = when {
+                    email.isBlank() -> "Please enter your email."
+                    password.isBlank() -> "Please enter your password."
+                    else -> {
+                        auth.signInWithEmailAndPassword(email, password)
+                            .addOnCompleteListener { task ->
+                                if (task.isSuccessful) {
+                                    onLoginClick()
+                                } else {
+                                    errorMessage =
+                                        task.exception?.message ?: "Login failed."
+                                }
+                            }
+                        ""
+                    }
+                }
+            },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Log in")

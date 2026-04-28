@@ -6,6 +6,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun CreateAccountScreen(
@@ -17,6 +18,8 @@ fun CreateAccountScreen(
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
+
+    val auth = FirebaseAuth.getInstance()
 
     Column(
         modifier = Modifier
@@ -100,7 +103,15 @@ fun CreateAccountScreen(
                     confirmPassword.isBlank() -> "Please confirm your password."
                     password != confirmPassword -> "Passwords do not match."
                     else -> {
-                        onAccountCreated()
+                        auth.createUserWithEmailAndPassword(email, password)
+                            .addOnCompleteListener { task ->
+                                if (task.isSuccessful) {
+                                    onAccountCreated()
+                                } else {
+                                    errorMessage =
+                                        task.exception?.message ?: "Account creation failed."
+                                }
+                            }
                         ""
                     }
                 }
