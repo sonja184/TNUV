@@ -19,48 +19,61 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
-import si.uni_lj.fe.libri.ui.theme.LibriTheme
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import si.uni_lj.fe.libri.ui.screens.BookDetailScreen
+import si.uni_lj.fe.libri.ui.screens.CreateAccountScreen
 import si.uni_lj.fe.libri.ui.screens.HomeScreen
 import si.uni_lj.fe.libri.ui.screens.LibraryScreen
-import si.uni_lj.fe.libri.ui.screens.ProfileScreen
-import si.uni_lj.fe.libri.ui.screens.BookDetailScreen
 import si.uni_lj.fe.libri.ui.screens.LoginScreen
-import si.uni_lj.fe.libri.ui.screens.CreateAccountScreen
+import si.uni_lj.fe.libri.ui.screens.ProfileScreen
+import si.uni_lj.fe.libri.ui.theme.LibriTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
         setContent {
             LibriTheme {
                 var isLoggedIn by remember { mutableStateOf(false) }
                 var showCreateAccount by remember { mutableStateOf(false) }
 
-                if (isLoggedIn) {
-                    LibriApp()
-                } else if (showCreateAccount) {
-                    CreateAccountScreen(
-                        onAccountCreated = {
-                            isLoggedIn = true
-                        },
-                        onBackToLoginClick = {
-                            showCreateAccount = false
-                        }
-                    )
-                } else {
-                    LoginScreen(
-                        onLoginClick = {
-                            isLoggedIn = true
-                        },
-                        onCreateAccountClick = {
-                            showCreateAccount = true
-                        }
-                    )
+                when {
+                    isLoggedIn -> {
+                        LibriApp(
+                            onLogoutClick = {
+                                isLoggedIn = false
+                                showCreateAccount = false
+                            }
+                        )
+                    }
+
+                    showCreateAccount -> {
+                        CreateAccountScreen(
+                            onAccountCreated = {
+                                isLoggedIn = true
+                                showCreateAccount = false
+                            },
+                            onBackToLoginClick = {
+                                showCreateAccount = false
+                            }
+                        )
+                    }
+
+                    else -> {
+                        LoginScreen(
+                            onLoginClick = {
+                                isLoggedIn = true
+                            },
+                            onCreateAccountClick = {
+                                showCreateAccount = true
+                            }
+                        )
+                    }
                 }
             }
         }
@@ -69,7 +82,9 @@ class MainActivity : ComponentActivity() {
 
 @PreviewScreenSizes
 @Composable
-fun LibriApp() {
+fun LibriApp(
+    onLogoutClick: () -> Unit = {}
+) {
     val navController = rememberNavController()
     var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.HOME_PAGE) }
 
@@ -104,17 +119,34 @@ fun LibriApp() {
                 modifier = Modifier.padding(innerPadding)
             ) {
                 composable("home") {
-                    HomeScreen(onCardClick = { bookId -> navController.navigate("detail/$bookId") })
+                    HomeScreen(
+                        onCardClick = { bookId ->
+                            navController.navigate("detail/$bookId")
+                        }
+                    )
                 }
+
                 composable("library") {
-                    LibraryScreen(onCardClick = { bookId -> navController.navigate("detail/$bookId") })
+                    LibraryScreen(
+                        onCardClick = { bookId ->
+                            navController.navigate("detail/$bookId")
+                        }
+                    )
                 }
+
                 composable("profile") {
-                    ProfileScreen()
+                    ProfileScreen(
+                        onLogoutClick = onLogoutClick
+                    )
                 }
+
                 composable(
                     "detail/{bookId}",
-                    arguments = listOf(navArgument("bookId") { type = NavType.StringType })
+                    arguments = listOf(
+                        navArgument("bookId") {
+                            type = NavType.StringType
+                        }
+                    )
                 ) { backStackEntry ->
                     val bookId = backStackEntry.arguments?.getString("bookId") ?: ""
                     BookDetailScreen(bookId = bookId)

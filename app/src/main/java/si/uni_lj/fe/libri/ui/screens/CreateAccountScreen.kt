@@ -7,6 +7,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.UserProfileChangeRequest
 
 @Composable
 fun CreateAccountScreen(
@@ -106,12 +107,27 @@ fun CreateAccountScreen(
                         auth.createUserWithEmailAndPassword(email, password)
                             .addOnCompleteListener { task ->
                                 if (task.isSuccessful) {
-                                    onAccountCreated()
+                                    val user = auth.currentUser
+
+                                    val profileUpdates = UserProfileChangeRequest.Builder()
+                                        .setDisplayName(name)
+                                        .build()
+
+                                    user?.updateProfile(profileUpdates)
+                                        ?.addOnCompleteListener { updateTask ->
+                                            if (updateTask.isSuccessful) {
+                                                onAccountCreated()
+                                            } else {
+                                                errorMessage =
+                                                    updateTask.exception?.message ?: "Name not saved."
+                                            }
+                                        }
                                 } else {
                                     errorMessage =
                                         task.exception?.message ?: "Account creation failed."
                                 }
                             }
+
                         ""
                     }
                 }
