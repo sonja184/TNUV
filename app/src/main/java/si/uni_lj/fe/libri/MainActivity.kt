@@ -12,6 +12,7 @@ import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffo
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -28,6 +29,8 @@ import si.uni_lj.fe.libri.ui.screens.HomeScreen
 import si.uni_lj.fe.libri.ui.screens.LibraryScreen
 import si.uni_lj.fe.libri.ui.screens.ProfileScreen
 import si.uni_lj.fe.libri.ui.screens.BookDetailScreen
+import si.uni_lj.fe.libri.ui.screens.LoginScreen
+import si.uni_lj.fe.libri.ui.screens.CreateAccountScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -35,7 +38,30 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             LibriTheme {
-                LibriApp()
+                var isLoggedIn by remember { mutableStateOf(false) }
+                var showCreateAccount by remember { mutableStateOf(false) }
+
+                if (isLoggedIn) {
+                    LibriApp()
+                } else if (showCreateAccount) {
+                    CreateAccountScreen(
+                        onAccountCreated = {
+                            isLoggedIn = true
+                        },
+                        onBackToLoginClick = {
+                            showCreateAccount = false
+                        }
+                    )
+                } else {
+                    LoginScreen(
+                        onLoginClick = {
+                            isLoggedIn = true
+                        },
+                        onCreateAccountClick = {
+                            showCreateAccount = true
+                        }
+                    )
+                }
             }
         }
     }
