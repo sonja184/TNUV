@@ -28,6 +28,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import si.uni_lj.fe.libri.data.api.BookApiService
 import si.uni_lj.fe.libri.data.repository.BookRepository
+import si.uni_lj.fe.libri.data.repository.UserLibraryRepository
 import si.uni_lj.fe.libri.ui.screens.BookDetailScreen
 import si.uni_lj.fe.libri.ui.screens.CreateAccountScreen
 import si.uni_lj.fe.libri.ui.screens.HomeScreen
@@ -47,6 +48,7 @@ class MainActivity : ComponentActivity() {
             .build()
         val apiService = retrofit.create(BookApiService::class.java)
         val repository = BookRepository(apiService)
+        val userLibraryRepository = UserLibraryRepository()
 
         setContent {
             LibriTheme {
@@ -57,6 +59,7 @@ class MainActivity : ComponentActivity() {
                     isLoggedIn -> {
                         LibriApp(
                             repository = repository,
+                            userLibraryRepository = userLibraryRepository,
                             onLogoutClick = {
                                 isLoggedIn = false
                                 showCreateAccount = false
@@ -96,6 +99,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun LibriApp(
     repository: BookRepository? = null,
+    userLibraryRepository: UserLibraryRepository? = null,
     onLogoutClick: () -> Unit = {}
 ) {
     val navController = rememberNavController()
@@ -143,9 +147,9 @@ fun LibriApp(
                 }
 
                 composable("library") {
-                    if (repository != null) {
+                    if (userLibraryRepository != null) {
                         LibraryScreen(
-                            repository = repository,
+                            userLibraryRepository = userLibraryRepository,
                             onCardClick = { bookId ->
                                 navController.navigate("detail/$bookId")
                             }
@@ -168,8 +172,12 @@ fun LibriApp(
                     )
                 ) { backStackEntry ->
                     val bookId = backStackEntry.arguments?.getString("bookId") ?: ""
-                    if (repository != null) {
-                        BookDetailScreen(bookId = bookId, repository = repository)
+                    if (repository != null && userLibraryRepository != null) {
+                        BookDetailScreen(
+                            bookId = bookId,
+                            repository = repository,
+                            userLibraryRepository = userLibraryRepository
+                        )
                     }
                 }
             }
