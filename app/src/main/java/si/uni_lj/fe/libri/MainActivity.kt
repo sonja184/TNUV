@@ -24,6 +24,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import si.uni_lj.fe.libri.data.api.BookApiService
+import si.uni_lj.fe.libri.data.repository.BookRepository
 import si.uni_lj.fe.libri.ui.screens.BookDetailScreen
 import si.uni_lj.fe.libri.ui.screens.CreateAccountScreen
 import si.uni_lj.fe.libri.ui.screens.HomeScreen
@@ -37,6 +41,13 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        val retrofit = Retrofit.Builder()
+            .baseUrl(BookApiService.BASE_URL)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+        val apiService = retrofit.create(BookApiService::class.java)
+        val repository = BookRepository(apiService)
+
         setContent {
             LibriTheme {
                 var isLoggedIn by remember { mutableStateOf(false) }
@@ -45,6 +56,7 @@ class MainActivity : ComponentActivity() {
                 when {
                     isLoggedIn -> {
                         LibriApp(
+                            repository = repository,
                             onLogoutClick = {
                                 isLoggedIn = false
                                 showCreateAccount = false
@@ -83,6 +95,7 @@ class MainActivity : ComponentActivity() {
 @PreviewScreenSizes
 @Composable
 fun LibriApp(
+    repository: BookRepository? = null,
     onLogoutClick: () -> Unit = {}
 ) {
     val navController = rememberNavController()
@@ -119,19 +132,25 @@ fun LibriApp(
                 modifier = Modifier.padding(innerPadding)
             ) {
                 composable("home") {
-                    HomeScreen(
-                        onCardClick = { bookId ->
-                            navController.navigate("detail/$bookId")
-                        }
-                    )
+                    if (repository != null) {
+                        HomeScreen(
+                            repository = repository,
+                            onCardClick = { bookId ->
+                                navController.navigate("detail/$bookId")
+                            }
+                        )
+                    }
                 }
 
                 composable("library") {
-                    LibraryScreen(
-                        onCardClick = { bookId ->
-                            navController.navigate("detail/$bookId")
-                        }
-                    )
+                    if (repository != null) {
+                        LibraryScreen(
+                            repository = repository,
+                            onCardClick = { bookId ->
+                                navController.navigate("detail/$bookId")
+                            }
+                        )
+                    }
                 }
 
                 composable("profile") {
@@ -149,7 +168,9 @@ fun LibriApp(
                     )
                 ) { backStackEntry ->
                     val bookId = backStackEntry.arguments?.getString("bookId") ?: ""
-                    BookDetailScreen(bookId = bookId)
+                    if (repository != null) {
+                        BookDetailScreen(bookId = bookId, repository = repository)
+                    }
                 }
             }
         }
