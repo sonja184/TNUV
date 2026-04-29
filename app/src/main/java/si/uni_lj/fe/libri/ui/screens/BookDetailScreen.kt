@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.google.gson.JsonPrimitive
 import kotlinx.coroutines.launch
 import si.uni_lj.fe.libri.data.api.AuthorKey
 import si.uni_lj.fe.libri.data.api.AuthorRole
@@ -44,15 +45,10 @@ fun BookDetailScreen(
             bookInfo = OpenLibraryWorkDetails(
                 key = libraryBook.id,
                 title = libraryBook.title,
-                description = libraryBook.description,
+                description = libraryBook.description?.let { JsonPrimitive(it) },
                 covers = null, // Not needed as we use coverUrl
                 authors = libraryBook.authors.map { AuthorRole(AuthorKey(it)) }
-            ).let { details ->
-                // Override coverUrl behavior by providing a custom object if needed, 
-                // but here we can just handle it in the UI or use a wrapper.
-                // For simplicity, I'll pass it as is and use libraryBook.coverUrl in UI.
-                details
-            }
+            )
             // Add a temporary property to details to store the coverUrl if it's from cache
             // Since we can't easily modify the class, let's just use a separate state or 
             // handle it in the UI block.

@@ -1,5 +1,6 @@
 package si.uni_lj.fe.libri.data.api
 
+import com.google.gson.JsonElement
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -39,13 +40,14 @@ data class Doc(
 data class OpenLibraryWorkDetails(
     val key: String?,
     val title: String,
-    val description: Any?, // Can be String or Map {"type": "/type/text", "value": "..."}
+    val description: JsonElement?, 
     val covers: List<Int>?,
     val authors: List<AuthorRole>?
 ) {
-    val descriptionText: String? get() = when (description) {
-        is String -> description
-        is Map<*, *> -> description["value"] as? String
+    val descriptionText: String? get() = when {
+        description == null -> null
+        description.isJsonPrimitive -> description.asString
+        description.isJsonObject -> description.asJsonObject.get("value")?.asString
         else -> null
     }
     val coverUrl: String? get() = covers?.firstOrNull()?.let { "https://covers.openlibrary.org/b/id/$it-L.jpg" }

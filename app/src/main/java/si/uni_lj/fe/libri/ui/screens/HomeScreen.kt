@@ -17,23 +17,23 @@ import si.uni_lj.fe.libri.ui.components.BookCard
 
 @Composable
 fun HomeScreen(repository: BookRepository, onCardClick: (String) -> Unit) {
-    val genres = listOf("Fiction", "Non-fiction", "Science", "Fantasy")
+    // Defined fixed genres for consistency
+    val genres = listOf("Fiction", "Romance", "Mystery", "Science Fiction", "History", "Fantasy", "Biography")
     
-    // States for books
-    var mostPopular by remember { mutableStateOf<List<Doc>>(emptyList()) }
+    // Using a key for LaunchedEffect to ensure it doesn't re-run unnecessarily 
+    // though Unit is usually enough, a fixed state helps.
     val genreBooks = remember { mutableStateMapOf<String, List<Doc>>() }
     var isLoading by remember { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
-        isLoading = true
-        // Fetch most popular (using "trending" or similar query)
-        mostPopular = repository.searchBooks("subject:fiction")
-        
-        // Fetch for each genre
-        genres.forEach { genre ->
-            genreBooks[genre] = repository.searchBooks("subject:$genre")
+        if (genreBooks.isEmpty()) {
+            isLoading = true
+            genres.forEach { genre ->
+                // Fetch books for each genre using a consistent subject query
+                genreBooks[genre] = repository.searchBooks("subject:${genre.lowercase().replace(" ", "_")}")
+            }
+            isLoading = false
         }
-        isLoading = false
     }
 
     if (isLoading) {
@@ -46,7 +46,9 @@ fun HomeScreen(repository: BookRepository, onCardClick: (String) -> Unit) {
                 Text("Most popular", style = MaterialTheme.typography.titleLarge)
                 Spacer(Modifier.height(8.dp))
                 LazyRow {
-                    items(mostPopular) { book ->
+                    // Using Fiction as the "Most Popular" stable list
+                    val popularBooks = genreBooks["Fiction"] ?: emptyList()
+                    items(popularBooks) { book ->
                         BookCard(
                             title = book.title,
                             imageUrl = book.thumbnailUrl,
@@ -57,21 +59,26 @@ fun HomeScreen(repository: BookRepository, onCardClick: (String) -> Unit) {
                 }
                 Spacer(Modifier.height(24.dp))
             }
-            genres.forEach { genre ->
-                item {
-                    Text(genre, style = MaterialTheme.typography.titleMedium)
-                    Spacer(Modifier.height(8.dp))
-                    LazyRow {
-                        items(genreBooks[genre] ?: emptyList()) { book ->
-                            BookCard(
-                                title = book.title,
-                                imageUrl = book.thumbnailUrl,
-                                onClick = { onCardClick(book.id) }
-                            )
-                            Spacer(Modifier.width(8.dp))
+            
+            // Display other genres (excluding the one used for popular)
+            genres.filter { it != "Fiction" }.forEach { genre ->
+                val books = genreBooks[genre] ?: emptyList()
+                if (books.isNotEmpty()) {
+                    item {
+                        Text(genre, style = MaterialTheme.typography.titleMedium)
+                        Spacer(Modifier.height(8.dp))
+                        LazyRow {
+                            items(books) { book ->
+                                BookCard(
+                                    title = book.title,
+                                    imageUrl = book.thumbnailUrl,
+                                    onClick = { onCardClick(book.id) }
+                                )
+                                Spacer(Modifier.width(8.dp))
+                            }
                         }
+                        Spacer(Modifier.height(24.dp))
                     }
-                    Spacer(Modifier.height(24.dp))
                 }
             }
         }
