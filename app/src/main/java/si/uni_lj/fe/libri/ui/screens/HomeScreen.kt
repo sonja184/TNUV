@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -16,68 +17,175 @@ import si.uni_lj.fe.libri.data.repository.BookRepository
 import si.uni_lj.fe.libri.ui.components.BookCard
 
 @Composable
-fun HomeScreen(repository: BookRepository, onCardClick: (String) -> Unit) {
-    // Defined fixed genres for consistency
-    val genres = listOf("Fiction", "Romance", "Mystery", "Science Fiction", "History", "Fantasy", "Biography")
-    
-    // Using a key for LaunchedEffect to ensure it doesn't re-run unnecessarily 
-    // though Unit is usually enough, a fixed state helps.
+fun HomeScreen(
+    repository: BookRepository,
+    onCardClick: (String) -> Unit
+) {
+    val genres = listOf(
+        "Fiction",
+        "Romance",
+        "Mystery",
+        "Science Fiction",
+        "History",
+        "Fantasy",
+        "Biography"
+    )
+
     val genreBooks = remember { mutableStateMapOf<String, List<Doc>>() }
+
     var isLoading by remember { mutableStateOf(true) }
+
+    var searchQuery by remember { mutableStateOf("") }
+    var searchResults by remember { mutableStateOf<List<Doc>>(emptyList()) }
+    var isSearching by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         if (genreBooks.isEmpty()) {
             isLoading = true
+
             genres.forEach { genre ->
-                // Fetch books for each genre using a consistent subject query
-                genreBooks[genre] = repository.searchBooks("subject:${genre.lowercase().replace(" ", "_")}")
+                genreBooks[genre] =
+                    repository.searchBooks("subject:${genre.lowercase().replace(" ", "_")}")
             }
+
             isLoading = false
         }
     }
 
+    LaunchedEffect(searchQuery) {
+        if (searchQuery.isBlank()) {
+            searchResults = emptyList()
+            isSearching = false
+        } else {
+            isSearching = true
+            searchResults = repository.searchBooks(searchQuery)
+            isSearching = false
+        }
+    }
+
     if (isLoading) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
             CircularProgressIndicator()
         }
     } else {
-        LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
             item {
-                Text("Most popular", style = MaterialTheme.typography.titleLarge)
-                Spacer(Modifier.height(8.dp))
-                LazyRow {
-                    // Using Fiction as the "Most Popular" stable list
-                    val popularBooks = genreBooks["Fiction"] ?: emptyList()
-                    items(popularBooks) { book ->
+                Text(
+                    text = "Discover books",
+                    style = MaterialTheme.typography.headlineMedium
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    label = { Text("Search books") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+            }
+
+            if (searchQuery.isNotBlank()) {
+                item {
+                    Text(
+                        text = "Search results",
+                        style = MaterialTheme.typography.titleLarge
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+
+                if (isSearching) {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(24.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
+                    }
+                } else if (searchResults.isEmpty()) {
+                    item {
+                        Text(
+                            text = "No books found.",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                } else {
+                    items(searchResults) { book ->
                         BookCard(
                             title = book.title,
                             imageUrl = book.thumbnailUrl,
                             onClick = { onCardClick(book.id) }
                         )
-                        Spacer(Modifier.width(8.dp))
+
+                        Spacer(modifier = Modifier.height(12.dp))
                     }
                 }
-                Spacer(Modifier.height(24.dp))
-            }
-            
-            // Display other genres (excluding the one used for popular)
-            genres.filter { it != "Fiction" }.forEach { genre ->
-                val books = genreBooks[genre] ?: emptyList()
-                if (books.isNotEmpty()) {
-                    item {
-                        Text(genre, style = MaterialTheme.typography.titleMedium)
-                        Spacer(Modifier.height(8.dp))
-                        LazyRow {
-                            items(books) { book ->
-                                BookCard(
-                                    title = book.title,
-                                    imageUrl = book.thumbnailUrl,
-                                    onClick = { onCardClick(book.id) }
-                                )
-                                Spacer(Modifier.width(8.dp))
-                            }
+            } else {
+                item {
+                    Text(
+                        text = "Most popular",
+                        style = MaterialTheme.typography.titleLarge
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    LazyRow {
+                        val popularBooks = genreBooks["Fiction"] ?: emptyList()
+
+                        items(popularBooks) { book ->
+                            BookCard(
+                                title = book.title,
+                                imageUrl = book.thumbnailUrl,
+                                onClick = { onCardClick(book.id) }
+                            )
+
+                            Spacer(modifier = Modifier.width(8.dp))
                         }
-                        Spacer(Modifier.height(24.dp))
+                    }
+
+                    Spacer(modifier = Modifier.height(24.dp))
+                }
+
+                genres.filter { it != "Fiction" }.forEach { genre ->
+                    val books = genreBooks[genre] ?: emptyList()
+
+                    if (books.isNotEmpty()) {
+                        item {
+                            Text(
+                                text = genre,
+                                style = MaterialTheme.typography.titleMedium
+                            )
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            LazyRow {
+                                items(books) { book ->
+                                    BookCard(
+                                        title = book.title,
+                                        imageUrl = book.thumbnailUrl,
+                                        onClick = { onCardClick(book.id) }
+                                    )
+
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(24.dp))
+                        }
                     }
                 }
             }
