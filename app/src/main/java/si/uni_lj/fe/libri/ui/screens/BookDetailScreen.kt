@@ -3,6 +3,7 @@ package si.uni_lj.fe.libri.ui.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -10,7 +11,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.google.gson.JsonPrimitive
@@ -36,44 +39,40 @@ fun BookDetailScreen(
 
     LaunchedEffect(bookId) {
         isLoading = true
-        
-        // 1. Check if book is in library (Firebase)
+
         val libraryBook = userLibraryRepository.getLibraryBook(bookId)
-        
+
         if (libraryBook != null) {
-            // Book is in library, use cached data
             bookInfo = OpenLibraryWorkDetails(
                 key = libraryBook.id,
                 title = libraryBook.title,
                 description = libraryBook.description?.let { JsonPrimitive(it) },
-                covers = null, // Not needed as we use coverUrl
+                covers = null,
                 authors = libraryBook.authors.map { AuthorRole(AuthorKey(it)) }
             )
-            // Add a temporary property to details to store the coverUrl if it's from cache
-            // Since we can't easily modify the class, let's just use a separate state or 
-            // handle it in the UI block.
             currentStatus = BookStatus.valueOf(libraryBook.status)
         } else {
-            // 2. Not in library, fetch from API
             bookInfo = repository.getBookDetails(bookId)
             currentStatus = BookStatus.NONE
         }
-        
+
         isLoading = false
     }
 
     if (isLoading) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator()
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
         }
     } else if (bookInfo != null) {
         val details = bookInfo!!
-        
-        // Determine cover URL (either from API or from cache)
-        // If covers is null but we have cached coverUrl, use that.
-        // We'll fetch the LibraryBook again or just use a state.
-        // Let's use a simpler approach: get the LibraryBook inside the LaunchedEffect and store its coverUrl.
+
         var displayCoverUrl by remember { mutableStateOf<String?>(null) }
+
         LaunchedEffect(bookId, bookInfo) {
             val libBook = userLibraryRepository.getLibraryBook(bookId)
             displayCoverUrl = libBook?.coverUrl ?: details.coverUrl
@@ -82,51 +81,79 @@ fun BookDetailScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp)
-                .verticalScroll(rememberScrollState()),
+                .background(MaterialTheme.colorScheme.background)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 20.dp, vertical = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Book cover
-            AsyncImage(
-                model = displayCoverUrl,
-                contentDescription = "Cover for ${details.title}",
-                modifier = Modifier
-                    .size(200.dp, 300.dp)
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                contentScale = ContentScale.Fit
-            )
-            
+            Card(
+                shape = RoundedCornerShape(28.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+            ) {
+                AsyncImage(
+                    model = displayCoverUrl,
+                    contentDescription = "Cover for ${details.title}",
+                    modifier = Modifier
+                        .size(width = 190.dp, height = 285.dp)
+                        .clip(RoundedCornerShape(24.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                    contentScale = ContentScale.Fit
+                )
+            }
+
             Spacer(modifier = Modifier.height(24.dp))
-            
+
             Text(
                 text = details.title,
-                style = MaterialTheme.typography.headlineMedium
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.onBackground,
+                fontWeight = FontWeight.Bold
             )
-            
+
+            Spacer(modifier = Modifier.height(6.dp))
+
             Text(
-                text = details.authors?.joinToString(", ") { it.author.key.removePrefix("/authors/").removePrefix("authors/") } ?: "Unknown Author",
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.secondary
+                text = details.authors?.joinToString(", ") {
+                    it.author.key
+                        .removePrefix("/authors/")
+                        .removePrefix("authors/")
+                } ?: "Unknown Author",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.secondary,
+                fontWeight = FontWeight.SemiBold
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-            // Status Dropdown
             Box {
                 Button(
                     onClick = { isStatusMenuExpanded = true },
-                    modifier = Modifier.fillMaxWidth(0.8f)
+                    modifier = Modifier
+                        .fillMaxWidth(0.88f)
+                        .height(52.dp),
+                    shape = RoundedCornerShape(16.dp)
                 ) {
                     Text(
-                        when (currentStatus) {
+                        text = when (currentStatus) {
                             BookStatus.READ -> "Read"
                             BookStatus.CURRENTLY_READING -> "Currently Reading"
                             BookStatus.WANT_TO_READ -> "Want to Read"
                             BookStatus.NONE -> "Add to Library"
-                        }
+                        },
+                        style = MaterialTheme.typography.titleMedium
                     )
-                    Icon(Icons.Default.ArrowDropDown, contentDescription = null)
+
+                    Spacer(modifier = Modifier.width(6.dp))
+
+                    Icon(
+                        imageVector = Icons.Default.ArrowDropDown,
+                        contentDescription = null
+                    )
                 }
+
                 DropdownMenu(
                     expanded = isStatusMenuExpanded,
                     onDismissRequest = { isStatusMenuExpanded = false }
@@ -154,13 +181,23 @@ fun BookDetailScreen(
                             )
                         }
                     }
+
                     if (currentStatus != BookStatus.NONE) {
                         DropdownMenuItem(
-                            text = { Text("Remove from Library") },
+                            text = {
+                                Text(
+                                    text = "Remove from Library",
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            },
                             onClick = {
                                 isStatusMenuExpanded = false
                                 scope.launch {
-                                    userLibraryRepository.updateBookStatus(bookId, details, BookStatus.NONE)
+                                    userLibraryRepository.updateBookStatus(
+                                        bookId,
+                                        details,
+                                        BookStatus.NONE
+                                    )
                                     currentStatus = BookStatus.NONE
                                 }
                             }
@@ -168,24 +205,47 @@ fun BookDetailScreen(
                     }
                 }
             }
-            
-            Spacer(modifier = Modifier.height(24.dp))
-            
-            Text(
-                text = "Description",
-                style = MaterialTheme.typography.titleMedium
-            )
-            
-            Spacer(modifier = Modifier.height(8.dp))
-            
-            Text(
-                text = details.descriptionText ?: "No description available.",
-                style = MaterialTheme.typography.bodyLarge
-            )
+
+            Spacer(modifier = Modifier.height(28.dp))
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
+            ) {
+                Column(
+                    modifier = Modifier.padding(22.dp)
+                ) {
+                    Text(
+                        text = "Description",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Text(
+                        text = details.descriptionText ?: "No description available.",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
         }
     } else {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text(text = "Failed to load book details.")
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "Failed to load book details.",
+                color = MaterialTheme.colorScheme.error
+            )
         }
     }
 }
