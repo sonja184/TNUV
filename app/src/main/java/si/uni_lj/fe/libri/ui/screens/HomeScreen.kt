@@ -8,15 +8,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import si.uni_lj.fe.libri.data.api.Doc
@@ -77,9 +73,7 @@ fun HomeScreen(
                 .background(MaterialTheme.colorScheme.background),
             contentAlignment = Alignment.Center
         ) {
-            CircularProgressIndicator(
-                color = MaterialTheme.colorScheme.primary
-            )
+            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
         }
     } else {
         LazyColumn(
@@ -89,57 +83,21 @@ fun HomeScreen(
             contentPadding = PaddingValues(
                 start = 20.dp,
                 end = 20.dp,
-                top = 28.dp,
-                bottom = 24.dp
-            )
+                top = 30.dp,
+                bottom = 32.dp
+            ),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             item {
-                Text(
-                    text = "Discover books",
-                    style = MaterialTheme.typography.headlineLarge,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    fontWeight = FontWeight.Bold
+                HomeHeader(
+                    searchQuery = searchQuery,
+                    onSearchChange = { searchQuery = it }
                 )
-
-                Spacer(modifier = Modifier.height(6.dp))
-
-                Text(
-                    text = "Find your next favorite read",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                Spacer(modifier = Modifier.height(22.dp))
-
-                OutlinedTextField(
-                    value = searchQuery,
-                    onValueChange = { searchQuery = it },
-                    label = { Text("Search books") },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = null
-                        )
-                    },
-                    singleLine = true,
-                    shape = RoundedCornerShape(18.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        focusedLabelColor = MaterialTheme.colorScheme.primary,
-                        cursorColor = MaterialTheme.colorScheme.primary,
-                        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                        focusedContainerColor = MaterialTheme.colorScheme.surface
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Spacer(modifier = Modifier.height(28.dp))
             }
 
             if (searchQuery.isNotBlank()) {
                 item {
                     SectionTitle("Search results")
-
                     Spacer(modifier = Modifier.height(12.dp))
                 }
 
@@ -148,21 +106,15 @@ fun HomeScreen(
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(28.dp),
+                                .padding(32.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            CircularProgressIndicator(
-                                color = MaterialTheme.colorScheme.primary
-                            )
+                            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                         }
                     }
                 } else if (searchResults.isEmpty()) {
                     item {
-                        Text(
-                            text = "No books found.",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        EmptyState("No books found. Try another title or author.")
                     }
                 } else {
                     items(searchResults) { book ->
@@ -178,11 +130,10 @@ fun HomeScreen(
             } else {
                 item {
                     SectionTitle("Most popular")
-
                     Spacer(modifier = Modifier.height(12.dp))
 
                     LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        horizontalArrangement = Arrangement.spacedBy(14.dp)
                     ) {
                         val popularBooks = genreBooks["Fiction"] ?: emptyList()
 
@@ -195,7 +146,7 @@ fun HomeScreen(
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(28.dp))
+                    Spacer(modifier = Modifier.height(30.dp))
                 }
 
                 genres.filter { it != "Fiction" }.forEach { genre ->
@@ -204,11 +155,10 @@ fun HomeScreen(
                     if (books.isNotEmpty()) {
                         item {
                             SectionTitle(genre)
-
                             Spacer(modifier = Modifier.height(12.dp))
 
                             LazyRow(
-                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                horizontalArrangement = Arrangement.spacedBy(14.dp)
                             ) {
                                 items(books) { book ->
                                     BookCard(
@@ -219,13 +169,78 @@ fun HomeScreen(
                                 }
                             }
 
-                            Spacer(modifier = Modifier.height(28.dp))
+                            Spacer(modifier = Modifier.height(30.dp))
                         }
                     }
                 }
             }
         }
     }
+}
+
+@Composable
+private fun HomeHeader(
+    searchQuery: String,
+    onSearchChange: (String) -> Unit
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(
+                elevation = 10.dp,
+                shape = RoundedCornerShape(28.dp),
+                ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f),
+                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)
+            ),
+        shape = RoundedCornerShape(28.dp),
+        color = MaterialTheme.colorScheme.surface
+    ) {
+        Column(
+            modifier = Modifier.padding(22.dp)
+        ) {
+            Text(
+                text = "Discover books",
+                style = MaterialTheme.typography.headlineLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontWeight = FontWeight.ExtraBold
+            )
+
+            Spacer(modifier = Modifier.height(6.dp))
+
+            Text(
+                text = "Find stories, authors and genres you will love.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = onSearchChange,
+                placeholder = { Text("Search books") },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                },
+                singleLine = true,
+                shape = RoundedCornerShape(20.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                    cursorColor = MaterialTheme.colorScheme.primary,
+                    focusedContainerColor = MaterialTheme.colorScheme.background,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.background
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+    }
+
+    Spacer(modifier = Modifier.height(28.dp))
 }
 
 @Composable
@@ -236,6 +251,24 @@ private fun SectionTitle(
         text = text,
         style = MaterialTheme.typography.titleLarge,
         color = MaterialTheme.colorScheme.onBackground,
-        fontWeight = FontWeight.SemiBold
+        fontWeight = FontWeight.Bold
     )
+}
+
+@Composable
+private fun EmptyState(
+    text: String
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(22.dp),
+        color = MaterialTheme.colorScheme.surface
+    ) {
+        Text(
+            text = text,
+            modifier = Modifier.padding(20.dp),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
 }

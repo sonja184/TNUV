@@ -7,52 +7,63 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
-private val DarkColorScheme = darkColorScheme(
-    primary = BrightGreen,
-    secondary = SoftOrange,
-
-    background = DarkBackground,
-    surface = DarkSurface,
-
+private val LightColorScheme = lightColorScheme(
+    primary = LibriGreen,
     onPrimary = Color.White,
-    onSecondary = TextDark,
 
-    onBackground = CreamText,
-    onSurface = CreamText,
+    secondary = LibriOrange,
+    onSecondary = LibriTextDark,
 
-    error = ErrorRed
+    tertiary = LibriGreenSoft,
+    onTertiary = LibriGreenDark,
+
+    background = LibriCream,
+    onBackground = LibriTextDark,
+
+    surface = LibriSurface,
+    onSurface = LibriTextDark,
+
+    surfaceVariant = LibriSurfaceWarm,
+    onSurfaceVariant = LibriTextMuted,
+
+    outline = LibriOutline,
+
+    error = ErrorRed,
+    onError = Color.White
 )
 
-private val LightColorScheme = lightColorScheme(
-    primary = DarkGreen,
-    secondary = WarmOrange,
+private val DarkColorScheme = darkColorScheme(
+    primary = LibriOrange,
+    onPrimary = LibriTextDark,
 
-    background = CreamBackground,
-    surface = CardCream,
+    secondary = LibriGreen,
+    onSecondary = Color.White,
 
-    onPrimary = Color.White,
-    onSecondary = TextDark,
+    tertiary = LibriDarkCard,
+    onTertiary = LibriDarkText,
 
-    onBackground = TextDark,
-    onSurface = TextDark,
+    background = LibriDarkBackground,
+    onBackground = LibriDarkText,
 
-    error = ErrorRed
+    surface = LibriDarkSurface,
+    onSurface = LibriDarkText,
+
+    surfaceVariant = LibriDarkCard,
+    onSurfaceVariant = LibriDarkMuted,
+
+    outline = Color(0xFF33433D),
+
+    error = ErrorRed,
+    onError = Color.White
 )
 
 @Composable
 fun LibriTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = if (darkTheme) {
-        DarkColorScheme
-    } else {
-        LightColorScheme
-    }
-
     MaterialTheme(
-        colorScheme = colorScheme,
+        colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme,
         typography = Typography,
         content = content
     )

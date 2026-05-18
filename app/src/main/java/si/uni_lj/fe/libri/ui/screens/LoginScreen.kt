@@ -7,7 +7,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -30,38 +32,53 @@ fun LoginScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 24.dp)
-            .padding(top = 60.dp)
+            .padding(horizontal = 20.dp, vertical = 34.dp)
     ) {
 
+        Spacer(modifier = Modifier.height(18.dp))
+
         Text(
-            text = "Welcome to Libri",
+            text = "Welcome back",
             style = MaterialTheme.typography.headlineLarge,
             color = MaterialTheme.colorScheme.onBackground,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.ExtraBold
         )
 
-        Spacer(modifier = Modifier.height(15.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Log in to continue reading",
-            style = MaterialTheme.typography.bodyMedium,
+            text = "Sign in to continue exploring your library.",
+            style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
-        Spacer(modifier = Modifier.height(60.dp))
+        Spacer(modifier = Modifier.height(42.dp))
 
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(28.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surface
-            )
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .shadow(
+                    elevation = 12.dp,
+                    shape = RoundedCornerShape(30.dp),
+                    ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f),
+                    spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)
+                ),
+            shape = RoundedCornerShape(30.dp),
+            color = MaterialTheme.colorScheme.surface
         ) {
 
             Column(
-                modifier = Modifier.padding(22.dp)
+                modifier = Modifier.padding(24.dp)
             ) {
+
+                Text(
+                    text = "Login",
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Spacer(modifier = Modifier.height(22.dp))
 
                 OutlinedTextField(
                     value = email,
@@ -73,7 +90,15 @@ fun LoginScreen(
 
                     singleLine = true,
 
-                    shape = RoundedCornerShape(16.dp),
+                    shape = RoundedCornerShape(18.dp),
+
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                        focusedContainerColor = MaterialTheme.colorScheme.background,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.background,
+                        cursorColor = MaterialTheme.colorScheme.primary
+                    ),
 
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -92,7 +117,15 @@ fun LoginScreen(
 
                     visualTransformation = PasswordVisualTransformation(),
 
-                    shape = RoundedCornerShape(16.dp),
+                    shape = RoundedCornerShape(18.dp),
+
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                        focusedContainerColor = MaterialTheme.colorScheme.background,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.background,
+                        cursorColor = MaterialTheme.colorScheme.primary
+                    ),
 
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -136,27 +169,29 @@ fun LoginScreen(
 
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(54.dp),
+                        .height(56.dp),
 
-                    shape = RoundedCornerShape(16.dp)
+                    shape = RoundedCornerShape(18.dp)
                 ) {
 
                     Text(
                         text = "Log in",
-                        style = MaterialTheme.typography.titleMedium
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
                     )
                 }
 
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(14.dp))
 
                 TextButton(
                     onClick = onCreateAccountClick,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
                 ) {
 
                     Text(
-                        text = "Don't have an account? Create one",
-                        color = MaterialTheme.colorScheme.primary
+                        text = "Create a new account",
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.SemiBold
                     )
                 }
             }

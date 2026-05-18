@@ -8,6 +8,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -33,81 +34,150 @@ fun CreateAccountScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 24.dp)
-            .padding(top = 40.dp, bottom = 24.dp)
+            .padding(horizontal = 20.dp, vertical = 34.dp)
     ) {
+
+        Spacer(modifier = Modifier.height(10.dp))
+
         Text(
-            text = "Create Account",
+            text = "Create account",
             style = MaterialTheme.typography.headlineLarge,
             color = MaterialTheme.colorScheme.onBackground,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.ExtraBold
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Sign up to start using Libri",
-            style = MaterialTheme.typography.bodyMedium,
+            text = "Join Libri and build your personal reading space.",
+            style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
-        Spacer(modifier = Modifier.height(28.dp))
+        Spacer(modifier = Modifier.height(36.dp))
 
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(28.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surface
-            )
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .shadow(
+                    elevation = 12.dp,
+                    shape = RoundedCornerShape(30.dp),
+                    ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f),
+                    spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)
+                ),
+            shape = RoundedCornerShape(30.dp),
+            color = MaterialTheme.colorScheme.surface
         ) {
+
             Column(
-                modifier = Modifier.padding(22.dp)
+                modifier = Modifier.padding(24.dp)
             ) {
+
+                Text(
+                    text = "Sign up",
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Spacer(modifier = Modifier.height(22.dp))
+
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
+
                     label = { Text("Name") },
+
                     singleLine = true,
-                    shape = RoundedCornerShape(16.dp),
+
+                    shape = RoundedCornerShape(18.dp),
+
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                        focusedContainerColor = MaterialTheme.colorScheme.background,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.background,
+                        cursorColor = MaterialTheme.colorScheme.primary
+                    ),
+
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(18.dp))
 
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it },
+
                     label = { Text("Email") },
+
                     singleLine = true,
-                    shape = RoundedCornerShape(16.dp),
+
+                    shape = RoundedCornerShape(18.dp),
+
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                        focusedContainerColor = MaterialTheme.colorScheme.background,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.background,
+                        cursorColor = MaterialTheme.colorScheme.primary
+                    ),
+
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(18.dp))
 
                 OutlinedTextField(
                     value = password,
                     onValueChange = { password = it },
+
                     label = { Text("Password") },
+
                     singleLine = true,
+
                     visualTransformation = PasswordVisualTransformation(),
-                    shape = RoundedCornerShape(16.dp),
+
+                    shape = RoundedCornerShape(18.dp),
+
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                        focusedContainerColor = MaterialTheme.colorScheme.background,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.background,
+                        cursorColor = MaterialTheme.colorScheme.primary
+                    ),
+
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(18.dp))
 
                 OutlinedTextField(
                     value = confirmPassword,
                     onValueChange = { confirmPassword = it },
+
                     label = { Text("Confirm Password") },
+
                     singleLine = true,
+
                     visualTransformation = PasswordVisualTransformation(),
-                    shape = RoundedCornerShape(16.dp),
+
+                    shape = RoundedCornerShape(18.dp),
+
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                        focusedContainerColor = MaterialTheme.colorScheme.background,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.background,
+                        cursorColor = MaterialTheme.colorScheme.primary
+                    ),
+
                     modifier = Modifier.fillMaxWidth()
                 )
 
                 if (errorMessage.isNotEmpty()) {
+
                     Spacer(modifier = Modifier.height(14.dp))
 
                     Text(
@@ -127,10 +197,13 @@ fun CreateAccountScreen(
                             password.isBlank() -> "Please enter your password."
                             confirmPassword.isBlank() -> "Please confirm your password."
                             password != confirmPassword -> "Passwords do not match."
+
                             else -> {
                                 auth.createUserWithEmailAndPassword(email, password)
                                     .addOnCompleteListener { task ->
+
                                         if (task.isSuccessful) {
+
                                             val user = auth.currentUser
 
                                             val profileUpdates =
@@ -140,15 +213,20 @@ fun CreateAccountScreen(
 
                                             user?.updateProfile(profileUpdates)
                                                 ?.addOnCompleteListener { updateTask ->
+
                                                     if (updateTask.isSuccessful) {
                                                         onAccountCreated()
+
                                                     } else {
+
                                                         errorMessage =
                                                             updateTask.exception?.message
                                                                 ?: "Name not saved."
                                                     }
                                                 }
+
                                         } else {
+
                                             errorMessage =
                                                 task.exception?.message
                                                     ?: "Account creation failed."
@@ -159,26 +237,32 @@ fun CreateAccountScreen(
                             }
                         }
                     },
+
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(54.dp),
-                    shape = RoundedCornerShape(16.dp)
+                        .height(56.dp),
+
+                    shape = RoundedCornerShape(18.dp)
                 ) {
+
                     Text(
-                        text = "Create Account",
-                        style = MaterialTheme.typography.titleMedium
+                        text = "Create account",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
                     )
                 }
 
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(14.dp))
 
                 TextButton(
                     onClick = onBackToLoginClick,
                     modifier = Modifier.fillMaxWidth()
                 ) {
+
                     Text(
                         text = "Already have an account? Log in",
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.SemiBold
                     )
                 }
             }

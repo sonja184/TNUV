@@ -12,6 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import si.uni_lj.fe.libri.data.repository.BookStatus
@@ -48,9 +49,7 @@ fun LibraryScreen(
                 .background(MaterialTheme.colorScheme.background),
             contentAlignment = Alignment.Center
         ) {
-            CircularProgressIndicator(
-                color = MaterialTheme.colorScheme.primary
-            )
+            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
         }
     } else {
         LazyColumn(
@@ -60,27 +59,12 @@ fun LibraryScreen(
             contentPadding = PaddingValues(
                 start = 20.dp,
                 end = 20.dp,
-                top = 28.dp,
-                bottom = 24.dp
+                top = 30.dp,
+                bottom = 32.dp
             )
         ) {
             item {
-                Text(
-                    text = "My Library",
-                    style = MaterialTheme.typography.headlineLarge,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Spacer(modifier = Modifier.height(6.dp))
-
-                Text(
-                    text = "Track your reading progress",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                Spacer(modifier = Modifier.height(28.dp))
+                LibraryHeader()
             }
 
             sections.forEach { (sectionTitle, status) ->
@@ -96,7 +80,7 @@ fun LibraryScreen(
                         Spacer(modifier = Modifier.height(12.dp))
 
                         LazyRow(
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            horizontalArrangement = Arrangement.spacedBy(14.dp)
                         ) {
                             items(books) { book ->
                                 BookCard(
@@ -107,7 +91,7 @@ fun LibraryScreen(
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(28.dp))
+                        Spacer(modifier = Modifier.height(30.dp))
                     }
                 }
             }
@@ -119,6 +103,43 @@ fun LibraryScreen(
             }
         }
     }
+}
+
+@Composable
+private fun LibraryHeader() {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(
+                elevation = 10.dp,
+                shape = RoundedCornerShape(28.dp),
+                ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f),
+                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)
+            ),
+        shape = RoundedCornerShape(28.dp),
+        color = MaterialTheme.colorScheme.surface
+    ) {
+        Column(
+            modifier = Modifier.padding(22.dp)
+        ) {
+            Text(
+                text = "My Library",
+                style = MaterialTheme.typography.headlineLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontWeight = FontWeight.ExtraBold
+            )
+
+            Spacer(modifier = Modifier.height(6.dp))
+
+            Text(
+                text = "Track what you are reading, finished, and planning to read.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+
+    Spacer(modifier = Modifier.height(30.dp))
 }
 
 @Composable
@@ -135,7 +156,7 @@ private fun SectionHeader(
             text = title,
             style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onBackground,
-            fontWeight = FontWeight.SemiBold
+            fontWeight = FontWeight.Bold
         )
 
         Surface(
@@ -144,10 +165,10 @@ private fun SectionHeader(
         ) {
             Text(
                 text = "$count",
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(horizontal = 13.dp, vertical = 5.dp),
+                style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.Bold
             )
         }
     }
@@ -155,47 +176,53 @@ private fun SectionHeader(
 
 @Composable
 private fun EmptyLibraryMessage() {
-    Box(
+    Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 80.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Card(
-            shape = RoundedCornerShape(28.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surface
+            .padding(top = 50.dp)
+            .shadow(
+                elevation = 10.dp,
+                shape = RoundedCornerShape(28.dp),
+                ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
+                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
             ),
-            modifier = Modifier.fillMaxWidth()
+        shape = RoundedCornerShape(28.dp),
+        color = MaterialTheme.colorScheme.surface
+    ) {
+        Column(
+            modifier = Modifier.padding(30.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Column(
-                modifier = Modifier.padding(28.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+            Surface(
+                shape = RoundedCornerShape(22.dp),
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)
             ) {
                 Icon(
                     imageVector = Icons.Default.MenuBook,
                     contentDescription = null,
-                    modifier = Modifier.size(56.dp),
+                    modifier = Modifier
+                        .size(64.dp)
+                        .padding(16.dp),
                     tint = MaterialTheme.colorScheme.primary
                 )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(
-                    text = "Your library is empty",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Spacer(modifier = Modifier.height(6.dp))
-
-                Text(
-                    text = "Add books to start building your personal library.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
             }
+
+            Spacer(modifier = Modifier.height(18.dp))
+
+            Text(
+                text = "Your library is empty",
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = "Add books from the home page to start building your personal collection.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }

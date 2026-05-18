@@ -2,18 +2,21 @@ package si.uni_lj.fe.libri.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.google.firebase.auth.FirebaseAuth
@@ -34,143 +37,25 @@ fun ProfileScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .padding(horizontal = 24.dp)
-            .padding(top = 56.dp),
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 20.dp, vertical = 30.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = "My Profile",
-            style = MaterialTheme.typography.headlineMedium,
-            color = MaterialTheme.colorScheme.onBackground,
-            fontWeight = FontWeight.Bold
+        ProfileHeader(
+            name = name,
+            email = email
         )
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        Box(
-            modifier = Modifier
-                .size(104.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = Icons.Default.Person,
-                contentDescription = "Profile icon",
-                modifier = Modifier.size(58.dp),
-                tint = MaterialTheme.colorScheme.primary
-            )
-        }
-
-        Spacer(modifier = Modifier.height(14.dp))
-
-        Text(
-            text = name,
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.onBackground,
-            fontWeight = FontWeight.Bold
+        ProfileInfoCard(
+            name = name,
+            email = email,
+            isDarkTheme = isDarkTheme,
+            onThemeChange = onThemeChange
         )
 
-        Text(
-            text = email,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
-        Spacer(modifier = Modifier.height(28.dp))
-
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(28.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surface
-            ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
-        ) {
-            Column(
-                modifier = Modifier.padding(22.dp)
-            ) {
-                ProfileInfoRow(
-                    icon = Icons.Default.Person,
-                    label = "Username",
-                    value = name
-                )
-
-                Spacer(modifier = Modifier.height(18.dp))
-
-                HorizontalDivider(
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
-                )
-
-                Spacer(modifier = Modifier.height(18.dp))
-
-                ProfileInfoRow(
-                    icon = Icons.Default.Email,
-                    label = "Email",
-                    value = email
-                )
-
-                Spacer(modifier = Modifier.height(18.dp))
-
-                HorizontalDivider(
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
-                )
-
-                Spacer(modifier = Modifier.height(18.dp))
-
-                ProfileInfoRow(
-                    icon = Icons.Default.Star,
-                    label = "Favorite genre",
-                    value = "Fiction"
-                )
-
-                Spacer(modifier = Modifier.height(18.dp))
-
-                HorizontalDivider(
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
-                )
-
-                Spacer(modifier = Modifier.height(18.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Default.DarkMode,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-
-                        Spacer(modifier = Modifier.width(14.dp))
-
-                        Column {
-                            Text(
-                                text = "Dark mode",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-
-                            Text(
-                                text = if (isDarkTheme) "On" else "Off",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                        }
-                    }
-
-                    Switch(
-                        checked = isDarkTheme,
-                        onCheckedChange = onThemeChange
-                    )
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(22.dp))
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -195,7 +80,7 @@ fun ProfileScreen(
             )
         }
 
-        Spacer(modifier = Modifier.height(28.dp))
+        Spacer(modifier = Modifier.height(26.dp))
 
         OutlinedButton(
             onClick = {
@@ -204,10 +89,168 @@ fun ProfileScreen(
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(52.dp),
-            shape = RoundedCornerShape(16.dp)
+                .height(54.dp),
+            shape = RoundedCornerShape(18.dp),
+            colors = ButtonDefaults.outlinedButtonColors(
+                contentColor = MaterialTheme.colorScheme.error
+            )
         ) {
-            Text("Log out")
+            Icon(
+                imageVector = Icons.Default.Logout,
+                contentDescription = null
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Text(
+                text = "Log out",
+                fontWeight = FontWeight.Bold
+            )
+        }
+    }
+}
+
+@Composable
+private fun ProfileHeader(
+    name: String,
+    email: String
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(
+                elevation = 10.dp,
+                shape = RoundedCornerShape(30.dp),
+                ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f),
+                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)
+            ),
+        shape = RoundedCornerShape(30.dp),
+        color = MaterialTheme.colorScheme.surface
+    ) {
+        Column(
+            modifier = Modifier.padding(26.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Surface(
+                modifier = Modifier.size(108.dp),
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)
+            ) {
+                Box(
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = "Profile icon",
+                        modifier = Modifier.size(58.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = name,
+                style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontWeight = FontWeight.ExtraBold
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Text(
+                text = email,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+private fun ProfileInfoCard(
+    name: String,
+    email: String,
+    isDarkTheme: Boolean,
+    onThemeChange: (Boolean) -> Unit
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(
+                elevation = 8.dp,
+                shape = RoundedCornerShape(26.dp),
+                ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.06f),
+                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)
+            ),
+        shape = RoundedCornerShape(26.dp),
+        color = MaterialTheme.colorScheme.surface
+    ) {
+        Column(
+            modifier = Modifier.padding(22.dp)
+        ) {
+            ProfileInfoRow(
+                icon = Icons.Default.Person,
+                label = "Username",
+                value = name
+            )
+
+            ProfileDivider()
+
+            ProfileInfoRow(
+                icon = Icons.Default.Email,
+                label = "Email",
+                value = email
+            )
+
+            ProfileDivider()
+
+            ProfileInfoRow(
+                icon = Icons.Default.Star,
+                label = "Favorite genre",
+                value = "Fiction"
+            )
+
+            ProfileDivider()
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconBubble {
+                        Icon(
+                            imageVector = Icons.Default.DarkMode,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(14.dp))
+
+                    Column {
+                        Text(
+                            text = "Dark mode",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+
+                        Text(
+                            text = if (isDarkTheme) "On" else "Off",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
+
+                Switch(
+                    checked = isDarkTheme,
+                    onCheckedChange = onThemeChange
+                )
+            }
         }
     }
 }
@@ -221,11 +264,13 @@ private fun ProfileInfoRow(
     Row(
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary
-        )
+        IconBubble {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary
+            )
+        }
 
         Spacer(modifier = Modifier.width(14.dp))
 
@@ -247,17 +292,44 @@ private fun ProfileInfoRow(
 }
 
 @Composable
+private fun IconBubble(
+    content: @Composable () -> Unit
+) {
+    Surface(
+        modifier = Modifier.size(42.dp),
+        shape = RoundedCornerShape(14.dp),
+        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+        content = {
+            Box(
+                contentAlignment = Alignment.Center
+            ) {
+                content()
+            }
+        }
+    )
+}
+
+@Composable
+private fun ProfileDivider() {
+    Spacer(modifier = Modifier.height(18.dp))
+
+    HorizontalDivider(
+        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.55f)
+    )
+
+    Spacer(modifier = Modifier.height(18.dp))
+}
+
+@Composable
 private fun StatCard(
     title: String,
     value: String,
     modifier: Modifier = Modifier
 ) {
-    Card(
-        modifier = modifier.height(82.dp),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
-        )
+    Surface(
+        modifier = modifier.height(86.dp),
+        shape = RoundedCornerShape(22.dp),
+        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
     ) {
         Column(
             modifier = Modifier
@@ -270,7 +342,7 @@ private fun StatCard(
                 text = value,
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.ExtraBold
             )
 
             Text(
