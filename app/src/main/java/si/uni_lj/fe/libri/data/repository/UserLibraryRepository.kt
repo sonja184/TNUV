@@ -28,9 +28,13 @@ class UserLibraryRepository {
         usersCollection.document(uid).collection("books")
     }
 
-    suspend fun updateBookStatus(bookId: String, details: OpenLibraryWorkDetails, status: BookStatus) {
+    suspend fun updateBookStatus(
+        bookId: String,
+        details: OpenLibraryWorkDetails,
+        status: BookStatus
+    ) {
         val collection = getUserBooksCollection() ?: return
-        
+
         if (status == BookStatus.NONE) {
             collection.document(bookId).delete().await()
         } else {
@@ -39,22 +43,28 @@ class UserLibraryRepository {
                 title = details.title,
                 coverUrl = details.coverUrl,
                 description = details.descriptionText,
-                authors = details.authors?.map { it.author.key.removePrefix("/authors/") } ?: emptyList(),
+                authors = details.authors?.map {
+                    it.author.key.removePrefix("/authors/")
+                } ?: emptyList(),
                 status = status.name
             )
+
             collection.document(bookId).set(book).await()
         }
     }
 
     suspend fun getLibraryBook(bookId: String): LibraryBook? {
         val collection = getUserBooksCollection() ?: return null
+
         return try {
             val snapshot = collection.document(bookId).get().await()
+
             if (snapshot.exists()) {
                 snapshot.toObject(LibraryBook::class.java)
             } else {
                 null
             }
+
         } catch (e: Exception) {
             null
         }
@@ -62,16 +72,39 @@ class UserLibraryRepository {
 
     suspend fun getBookStatus(bookId: String): BookStatus {
         val book = getLibraryBook(bookId)
-        return book?.let { BookStatus.valueOf(it.status) } ?: BookStatus.NONE
+
+        return book?.let {
+            BookStatus.valueOf(it.status)
+        } ?: BookStatus.NONE
     }
 
     suspend fun getBooksByStatus(status: BookStatus): List<LibraryBook> {
         val collection = getUserBooksCollection() ?: return emptyList()
+
         return try {
-            val snapshot = collection.whereEqualTo("status", status.name).get().await()
+            val snapshot = collection
+                .whereEqualTo("status", status.name)
+                .get()
+                .await()
+
             snapshot.toObjects(LibraryBook::class.java)
+
         } catch (e: Exception) {
             emptyList()
+        }
+    }
+
+    suspend fun getBookCountByStatus(status: BookStatus): Int {
+        return getBooksByStatus(status).size
+    }
+
+    suspend fun getTotalSavedBooksCount(): Int {
+        val collection = getUserBooksCollection() ?: return 0
+
+        return try {
+            collection.get().await().size()
+        } catch (e: Exception) {
+            0
         }
     }
 }

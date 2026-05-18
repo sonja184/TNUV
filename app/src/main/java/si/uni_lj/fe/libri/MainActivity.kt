@@ -161,6 +161,7 @@ fun LibriApp(
 
                 composable("profile") {
                     ProfileScreen(
+                        userLibraryRepository = userLibraryRepository,
                         onLogoutClick = onLogoutClick,
                         isDarkTheme = isDarkTheme,
                         onThemeChange = onThemeChange

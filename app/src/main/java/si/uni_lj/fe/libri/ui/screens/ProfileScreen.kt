@@ -13,16 +13,19 @@ import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.google.firebase.auth.FirebaseAuth
+import si.uni_lj.fe.libri.data.repository.BookStatus
+import si.uni_lj.fe.libri.data.repository.UserLibraryRepository
 
 @Composable
 fun ProfileScreen(
+    userLibraryRepository: UserLibraryRepository,
     onLogoutClick: () -> Unit,
     isDarkTheme: Boolean,
     onThemeChange: (Boolean) -> Unit
@@ -32,6 +35,25 @@ fun ProfileScreen(
 
     val name = user?.displayName ?: "Guest User"
     val email = user?.email ?: "No email"
+
+    var readCount by remember { mutableStateOf(0) }
+    var currentlyReadingCount by remember { mutableStateOf(0) }
+    var savedCount by remember { mutableStateOf(0) }
+
+    LaunchedEffect(Unit) {
+        readCount =
+            userLibraryRepository.getBookCountByStatus(BookStatus.READ)
+
+        currentlyReadingCount =
+            userLibraryRepository.getBookCountByStatus(
+                BookStatus.CURRENTLY_READING
+            )
+
+        savedCount =
+            userLibraryRepository.getBookCountByStatus(
+                BookStatus.WANT_TO_READ
+            )
+    }
 
     Column(
         modifier = Modifier
@@ -63,19 +85,19 @@ fun ProfileScreen(
         ) {
             StatCard(
                 title = "Read",
-                value = "12",
+                value = readCount.toString(),
                 modifier = Modifier.weight(1f)
             )
 
             StatCard(
-                title = "Reviews",
-                value = "4",
+                title = "Reading",
+                value = currentlyReadingCount.toString(),
                 modifier = Modifier.weight(1f)
             )
 
             StatCard(
                 title = "Saved",
-                value = "8",
+                value = savedCount.toString(),
                 modifier = Modifier.weight(1f)
             )
         }
