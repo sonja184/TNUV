@@ -25,12 +25,13 @@ import si.uni_lj.fe.libri.data.api.OpenLibraryWorkDetails
 import si.uni_lj.fe.libri.data.repository.BookRepository
 import si.uni_lj.fe.libri.data.repository.BookStatus
 import si.uni_lj.fe.libri.data.repository.UserLibraryRepository
-
+import androidx.compose.material.icons.filled.ArrowBack
 @Composable
 fun BookDetailScreen(
     bookId: String,
     repository: BookRepository,
-    userLibraryRepository: UserLibraryRepository
+    userLibraryRepository: UserLibraryRepository,
+    onBackClick: () -> Unit
 ) {
     var bookInfo by remember { mutableStateOf<OpenLibraryWorkDetails?>(null) }
     var isLoading by remember { mutableStateOf(true) }
@@ -112,9 +113,31 @@ fun BookDetailScreen(
                 .padding(horizontal = 20.dp, vertical = 26.dp),
 
             horizontalAlignment = Alignment.CenterHorizontally
+
         ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Start
+            ) {
+
+                IconButton(
+                    onClick = onBackClick,
+                    modifier = Modifier.size(48.dp)
+                ) {
+
+                    Icon(
+                        imageVector = Icons.Default.ArrowBack,
+                        contentDescription = "Back",
+                        tint = MaterialTheme.colorScheme.onBackground
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
 
             Surface(
+
+
                 modifier = Modifier
                     .shadow(
                         elevation = 16.dp,

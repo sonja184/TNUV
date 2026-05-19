@@ -181,7 +181,10 @@ fun LibriApp(
                     BookDetailScreen(
                         bookId = bookId,
                         repository = repository,
-                        userLibraryRepository = userLibraryRepository
+                        userLibraryRepository = userLibraryRepository,
+                        onBackClick = {
+                            navController.popBackStack()
+                        }
                     )
                 }
             }
