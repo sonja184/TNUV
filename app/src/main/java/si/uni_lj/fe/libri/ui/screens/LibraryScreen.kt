@@ -1,5 +1,6 @@
 package si.uni_lj.fe.libri.ui.screens
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -7,16 +8,18 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MenuBook
+import androidx.compose.material.icons.automirrored.filled.MenuBook
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import si.uni_lj.fe.libri.data.repository.BookStatus
-import si.uni_lj.fe.libri.data.repository.LibraryBook
 import si.uni_lj.fe.libri.data.repository.UserLibraryRepository
 import si.uni_lj.fe.libri.ui.components.BookCard
 
@@ -25,33 +28,46 @@ fun LibraryScreen(
     userLibraryRepository: UserLibraryRepository,
     onCardClick: (String) -> Unit
 ) {
+    // Explicitly request sync when entering this screen.
+    LaunchedEffect(Unit) {
+        Log.d("LibraryScreen", "Screen entered, requesting sync.")
+        userLibraryRepository.startSync()
+    }
+
+    val allBooks by userLibraryRepository.libraryBooks.collectAsState()
+    val syncError by userLibraryRepository.syncError.collectAsState()
+
     val sections = listOf(
         "Currently reading" to BookStatus.CURRENTLY_READING,
         "Read" to BookStatus.READ,
         "Want to read" to BookStatus.WANT_TO_READ
     )
 
-    val sectionBooks = remember { mutableStateMapOf<BookStatus, List<LibraryBook>>() }
-    var isLoading by remember { mutableStateOf(true) }
-
-    LaunchedEffect(Unit) {
-        isLoading = true
-        sections.forEach { (_, status) ->
-            sectionBooks[status] = userLibraryRepository.getBooksByStatus(status)
-        }
-        isLoading = false
-    }
-
-    if (isLoading) {
+    if (syncError != null) {
+        PermissionErrorState(
+            message = syncError!!,
+            onRetry = { userLibraryRepository.startSync() }
+        )
+    } else if (allBooks == null) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background),
             contentAlignment = Alignment.Center
         ) {
-            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "Connecting to library...",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     } else {
+        val booksList = allBooks!!
+        
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -68,7 +84,7 @@ fun LibraryScreen(
             }
 
             sections.forEach { (sectionTitle, status) ->
-                val books = sectionBooks[status] ?: emptyList()
+                val books = booksList.filter { it.bookStatus == status }
 
                 if (books.isNotEmpty()) {
                     item {
@@ -80,11 +96,13 @@ fun LibraryScreen(
                         Spacer(modifier = Modifier.height(12.dp))
 
                         LazyRow(
-                            horizontalArrangement = Arrangement.spacedBy(14.dp)
+                            horizontalArrangement = Arrangement.spacedBy(14.dp),
+                            contentPadding = PaddingValues(horizontal = 4.dp)
                         ) {
-                            items(books) { book ->
+                            items(books, key = { it.id }) { book ->
                                 BookCard(
                                     title = book.title,
+                                    author = book.authorName ?: "Unknown Author",
                                     imageUrl = book.coverUrl,
                                     onClick = { onCardClick(book.id) }
                                 )
@@ -96,12 +114,66 @@ fun LibraryScreen(
                 }
             }
 
-            if (sectionBooks.values.all { it.isEmpty() }) {
+            if (booksList.isEmpty()) {
                 item {
                     EmptyLibraryMessage()
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun PermissionErrorState(message: String, onRetry: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(32.dp)
+            .background(MaterialTheme.colorScheme.background),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Surface(
+            shape = RoundedCornerShape(20.dp),
+            color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.4f)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Warning,
+                contentDescription = null,
+                modifier = Modifier.size(64.dp).padding(12.dp),
+                tint = MaterialTheme.colorScheme.error
+            )
+        }
+        Spacer(modifier = Modifier.height(20.dp))
+        Text(
+            text = "Access Denied",
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onBackground
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        Text(
+            text = "Your Firestore Security Rules are blocking the app. Please update them in the Firebase Console.",
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+        Button(
+            onClick = onRetry,
+            contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp)
+        ) {
+            Icon(Icons.Default.Refresh, contentDescription = null)
+            Spacer(Modifier.width(8.dp))
+            Text("Retry Connection")
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = "Technical info: $message",
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.error
+        )
     }
 }
 
@@ -198,7 +270,7 @@ private fun EmptyLibraryMessage() {
                 color = MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)
             ) {
                 Icon(
-                    imageVector = Icons.Default.MenuBook,
+                    imageVector = Icons.AutoMirrored.Filled.MenuBook,
                     contentDescription = null,
                     modifier = Modifier
                         .size(64.dp)

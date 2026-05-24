@@ -42,7 +42,8 @@ data class OpenLibraryWorkDetails(
     val title: String,
     val description: JsonElement?, 
     val covers: List<Int>?,
-    val authors: List<AuthorRole>?
+    val authors: List<AuthorRole>?,
+    val authorNames: List<String>? = null
 ) {
     val descriptionText: String? get() = when {
         description == null -> null

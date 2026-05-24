@@ -24,6 +24,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.google.firebase.auth.FirebaseAuth
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import si.uni_lj.fe.libri.data.api.BookApiService
@@ -53,12 +54,12 @@ class MainActivity : ComponentActivity() {
             UserLibraryRepository()
 
         setContent {
-
-            var isDarkTheme by rememberSaveable {
-                mutableStateOf(false)
+            // Check if user is already logged in on startup
+            var isLoggedIn by rememberSaveable {
+                mutableStateOf(FirebaseAuth.getInstance().currentUser != null)
             }
 
-            var isLoggedIn by rememberSaveable {
+            var isDarkTheme by rememberSaveable {
                 mutableStateOf(false)
             }
 
@@ -69,22 +70,16 @@ class MainActivity : ComponentActivity() {
             LibriTheme(
                 darkTheme = isDarkTheme
             ) {
-
                 when {
-
                     isLoggedIn -> {
-
                         LibriApp(
                             repository = repository,
                             userLibraryRepository = userLibraryRepository,
-
                             onLogoutClick = {
                                 isLoggedIn = false
                                 showCreateAccount = false
                             },
-
                             isDarkTheme = isDarkTheme,
-
                             onThemeChange = {
                                 isDarkTheme = it
                             }
@@ -92,14 +87,11 @@ class MainActivity : ComponentActivity() {
                     }
 
                     showCreateAccount -> {
-
                         CreateAccountScreen(
-
                             onAccountCreated = {
                                 isLoggedIn = true
                                 showCreateAccount = false
                             },
-
                             onBackToLoginClick = {
                                 showCreateAccount = false
                             }
@@ -107,13 +99,10 @@ class MainActivity : ComponentActivity() {
                     }
 
                     else -> {
-
                         LoginScreen(
-
                             onLoginClick = {
                                 isLoggedIn = true
                             },
-
                             onCreateAccountClick = {
                                 showCreateAccount = true
                             }
@@ -133,45 +122,37 @@ fun LibriApp(
     isDarkTheme: Boolean,
     onThemeChange: (Boolean) -> Unit
 ) {
+    // Ensure sync is active when the app is showing
+    DisposableEffect(Unit) {
+        userLibraryRepository.startSync()
+        onDispose {
+            userLibraryRepository.stopSync()
+        }
+    }
 
     val navController = rememberNavController()
-
-    val backStackEntry by
-    navController.currentBackStackEntryAsState()
-
-    val currentRoute =
-        backStackEntry?.destination?.route
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = backStackEntry?.destination?.route
 
     NavigationSuiteScaffold(
-
         navigationSuiteItems = {
-
             AppDestinations.entries.forEach { destination ->
-
                 item(
-
                     icon = {
-
                         when (destination) {
-
                             AppDestinations.HOME_PAGE -> {
-
                                 Icon(
                                     imageVector = Icons.Outlined.Home,
                                     contentDescription = destination.label
                                 )
                             }
-
                             AppDestinations.MY_LIBRARY -> {
-
                                 Icon(
                                     imageVector = Icons.Outlined.FavoriteBorder,
                                     contentDescription = destination.label
                                 )
                             }
-
                             AppDestinations.MY_PROFILE -> {
-
                                 Icon(
                                     imageVector = Icons.Outlined.Person,
                                     contentDescription = destination.label
@@ -179,26 +160,18 @@ fun LibriApp(
                             }
                         }
                     },
-
                     label = {
-
                         Text(
                             text = destination.label,
                             fontWeight = FontWeight.SemiBold
                         )
                     },
-
-                    selected =
-                        currentRoute == destination.route,
-
+                    selected = currentRoute == destination.route,
                     onClick = {
-
                         navController.navigate(destination.route) {
-
                             popUpTo("home") {
                                 saveState = true
                             }
-
                             launchSingleTop = true
                             restoreState = true
                         }
@@ -206,95 +179,55 @@ fun LibriApp(
                 )
             }
         }
-
     ) {
-
         Scaffold(
             modifier = Modifier.fillMaxSize()
         ) { innerPadding ->
-
             NavHost(
                 navController = navController,
                 startDestination = "home",
                 modifier = Modifier.padding(innerPadding)
             ) {
-
                 composable("home") {
-
                     HomeScreen(
-
                         repository = repository,
-
                         onCardClick = { bookId ->
-
-                            navController.navigate(
-                                "detail/$bookId"
-                            )
+                            navController.navigate("detail/$bookId")
                         }
                     )
                 }
 
                 composable("library") {
-
                     LibraryScreen(
-
-                        userLibraryRepository =
-                            userLibraryRepository,
-
+                        userLibraryRepository = userLibraryRepository,
                         onCardClick = { bookId ->
-
-                            navController.navigate(
-                                "detail/$bookId"
-                            )
+                            navController.navigate("detail/$bookId")
                         }
                     )
                 }
 
                 composable("profile") {
-
                     ProfileScreen(
-
-                        userLibraryRepository =
-                            userLibraryRepository,
-
-                        onLogoutClick =
-                            onLogoutClick,
-
-                        isDarkTheme =
-                            isDarkTheme,
-
-                        onThemeChange =
-                            onThemeChange
+                        userLibraryRepository = userLibraryRepository,
+                        onLogoutClick = onLogoutClick,
+                        isDarkTheme = isDarkTheme,
+                        onThemeChange = onThemeChange
                     )
                 }
 
                 composable(
-
                     route = "detail/{bookId}",
-
                     arguments = listOf(
-
                         navArgument("bookId") {
                             type = NavType.StringType
                         }
                     )
-
                 ) { backStackEntry ->
-
-                    val bookId =
-                        backStackEntry.arguments
-                            ?.getString("bookId")
-                            .orEmpty()
-
+                    val bookId = backStackEntry.arguments?.getString("bookId").orEmpty()
                     BookDetailScreen(
-
                         bookId = bookId,
-
                         repository = repository,
-
-                        userLibraryRepository =
-                            userLibraryRepository,
-
+                        userLibraryRepository = userLibraryRepository,
                         onBackClick = {
                             navController.popBackStack()
                         }
@@ -309,19 +242,7 @@ enum class AppDestinations(
     val label: String,
     val route: String
 ) {
-
-    HOME_PAGE(
-        "Home",
-        "home"
-    ),
-
-    MY_LIBRARY(
-        "Library",
-        "library"
-    ),
-
-    MY_PROFILE(
-        "Profile",
-        "profile"
-    )
+    HOME_PAGE("Home", "home"),
+    MY_LIBRARY("Library", "library"),
+    MY_PROFILE("Profile", "profile")
 }

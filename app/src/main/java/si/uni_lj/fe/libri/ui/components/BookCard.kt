@@ -22,6 +22,7 @@ import coil.compose.AsyncImage
 @Composable
 fun BookCard(
     title: String,
+    author: String?,
     imageUrl: String?,
     onClick: () -> Unit
 ) {
@@ -65,9 +66,20 @@ fun BookCard(
                 style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.Bold,
-                maxLines = 2,
+                maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
+
+            author?.let {
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
         }
     }
 }

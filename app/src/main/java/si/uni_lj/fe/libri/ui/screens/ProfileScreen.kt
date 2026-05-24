@@ -36,23 +36,20 @@ fun ProfileScreen(
     val name = user?.displayName ?: "Guest User"
     val email = user?.email ?: "No email"
 
-    var readCount by remember { mutableStateOf(0) }
-    var currentlyReadingCount by remember { mutableStateOf(0) }
-    var savedCount by remember { mutableStateOf(0) }
+    // Use collectAsState directly on the StateFlow property.
+    // This ensures real-time updates and is more idiomatic for StateFlow.
+    val allBooksNullable by userLibraryRepository.libraryBooks.collectAsState()
+    val allBooks = allBooksNullable ?: emptyList()
 
-    LaunchedEffect(Unit) {
-        readCount =
-            userLibraryRepository.getBookCountByStatus(BookStatus.READ)
-
-        currentlyReadingCount =
-            userLibraryRepository.getBookCountByStatus(
-                BookStatus.CURRENTLY_READING
-            )
-
-        savedCount =
-            userLibraryRepository.getBookCountByStatus(
-                BookStatus.WANT_TO_READ
-            )
+    // Derived state for counters - updates automatically when allBooks changes
+    val readCount = remember(allBooks) {
+        allBooks.count { it.bookStatus == BookStatus.READ }
+    }
+    val currentlyReadingCount = remember(allBooks) {
+        allBooks.count { it.bookStatus == BookStatus.CURRENTLY_READING }
+    }
+    val savedCount = remember(allBooks) {
+        allBooks.count { it.bookStatus == BookStatus.WANT_TO_READ }
     }
 
     Column(

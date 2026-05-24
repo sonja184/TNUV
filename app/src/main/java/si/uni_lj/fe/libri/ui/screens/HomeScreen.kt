@@ -1,5 +1,6 @@
 package si.uni_lj.fe.libri.ui.screens
 
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -13,60 +14,44 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 import si.uni_lj.fe.libri.data.api.Doc
 import si.uni_lj.fe.libri.data.repository.BookRepository
 import si.uni_lj.fe.libri.ui.components.BookCard
+import si.uni_lj.fe.libri.ui.viewmodels.HomeViewModel
 
 @Composable
 fun HomeScreen(
     repository: BookRepository,
     onCardClick: (String) -> Unit
 ) {
-    val genres = listOf(
-        "Fiction",
-        "Romance",
-        "Mystery",
-        "Science Fiction",
-        "History",
-        "Fantasy",
-        "Biography"
+    // Optimization: Scope the ViewModel to the Activity Store Owner 
+    // so it persists when navigating to Library/Profile and back.
+    val activity = LocalContext.current as ComponentActivity
+    val viewModel: HomeViewModel = viewModel(
+        viewModelStoreOwner = activity,
+        factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                @Suppress("UNCHECKED_CAST")
+                return HomeViewModel(repository) as T
+            }
+        }
     )
 
-    val genreBooks = remember { mutableStateMapOf<String, List<Doc>>() }
+    val isLoading by viewModel.isLoading.collectAsState()
+    val genreBooks = viewModel.genreBooks
+    val searchQuery = viewModel.searchQuery
+    val searchResults = viewModel.searchResults
+    val isSearching = viewModel.isSearching
+    val genres = viewModel.genres
 
-    var isLoading by remember { mutableStateOf(true) }
-
-    var searchQuery by remember { mutableStateOf("") }
-    var searchResults by remember { mutableStateOf<List<Doc>>(emptyList()) }
-    var isSearching by remember { mutableStateOf(false) }
-
-    LaunchedEffect(Unit) {
-        if (genreBooks.isEmpty()) {
-            isLoading = true
-
-            genres.forEach { genre ->
-                genreBooks[genre] =
-                    repository.searchBooks("subject:${genre.lowercase().replace(" ", "_")}")
-            }
-
-            isLoading = false
-        }
-    }
-
-    LaunchedEffect(searchQuery) {
-        if (searchQuery.isBlank()) {
-            searchResults = emptyList()
-            isSearching = false
-        } else {
-            isSearching = true
-            searchResults = repository.searchBooks(searchQuery)
-            isSearching = false
-        }
-    }
-
-    if (isLoading) {
+    // If we have cached data, show it immediately. Only show spinner if totally empty.
+    if (isLoading && genreBooks.isEmpty()) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -91,7 +76,7 @@ fun HomeScreen(
             item {
                 HomeHeader(
                     searchQuery = searchQuery,
-                    onSearchChange = { searchQuery = it }
+                    onSearchChange = { viewModel.onSearchQueryChange(it) }
                 )
             }
 
@@ -120,6 +105,7 @@ fun HomeScreen(
                     items(searchResults) { book ->
                         BookCard(
                             title = book.title,
+                            author = book.author_name?.joinToString(", "),
                             imageUrl = book.thumbnailUrl,
                             onClick = { onCardClick(book.id) }
                         )
@@ -140,6 +126,7 @@ fun HomeScreen(
                         items(popularBooks) { book ->
                             BookCard(
                                 title = book.title,
+                                author = book.author_name?.firstOrNull(),
                                 imageUrl = book.thumbnailUrl,
                                 onClick = { onCardClick(book.id) }
                             )
@@ -163,6 +150,7 @@ fun HomeScreen(
                                 items(books) { book ->
                                     BookCard(
                                         title = book.title,
+                                        author = book.author_name?.firstOrNull(),
                                         imageUrl = book.thumbnailUrl,
                                         onClick = { onCardClick(book.id) }
                                     )
