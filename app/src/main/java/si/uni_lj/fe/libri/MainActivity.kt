@@ -168,12 +168,16 @@ fun LibriApp(
                     },
                     selected = currentRoute == destination.route,
                     onClick = {
-                        navController.navigate(destination.route) {
-                            popUpTo("home") {
-                                saveState = true
+                        if (currentRoute != destination.route) {
+                            navController.navigate(destination.route) {
+                                popUpTo("home") {
+                                    inclusive = false
+                                    saveState = false
+                                }
+
+                                launchSingleTop = true
+                                restoreState = false
                             }
-                            launchSingleTop = true
-                            restoreState = true
                         }
                     }
                 )
