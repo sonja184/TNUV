@@ -32,6 +32,7 @@ import si.uni_lj.fe.libri.data.repository.BookRepository
 import si.uni_lj.fe.libri.data.repository.UserLibraryRepository
 import si.uni_lj.fe.libri.ui.screens.*
 import si.uni_lj.fe.libri.ui.theme.LibriTheme
+import com.google.firebase.firestore.FirebaseFirestore
 
 class MainActivity : ComponentActivity() {
 
@@ -54,13 +55,33 @@ class MainActivity : ComponentActivity() {
             UserLibraryRepository()
 
         setContent {
-            // Check if user is already logged in on startup
+
             var isLoggedIn by rememberSaveable {
                 mutableStateOf(FirebaseAuth.getInstance().currentUser != null)
             }
 
             var isDarkTheme by rememberSaveable {
                 mutableStateOf(false)
+
+            }
+            val firestore = FirebaseFirestore.getInstance()
+            val auth = FirebaseAuth.getInstance()
+
+            LaunchedEffect(isLoggedIn) {
+
+                val uid = auth.currentUser?.uid
+
+                if (isLoggedIn && uid != null) {
+
+                    firestore.collection("users")
+                        .document(uid)
+                        .get()
+                        .addOnSuccessListener { document ->
+
+                            isDarkTheme =
+                                document.getBoolean("darkTheme") ?: false
+                        }
+                }
             }
 
             var showCreateAccount by rememberSaveable {
@@ -80,8 +101,23 @@ class MainActivity : ComponentActivity() {
                                 showCreateAccount = false
                             },
                             isDarkTheme = isDarkTheme,
-                            onThemeChange = {
-                                isDarkTheme = it
+                            onThemeChange = { dark ->
+
+                                isDarkTheme = dark
+
+                                val uid = auth.currentUser?.uid
+
+                                if (uid != null) {
+
+                                    firestore.collection("users")
+                                        .document(uid)
+                                        .set(
+                                            mapOf(
+                                                "darkTheme" to dark
+                                            ),
+                                            com.google.firebase.firestore.SetOptions.merge()
+                                        )
+                                }
                             }
                         )
                     }
@@ -122,7 +158,7 @@ fun LibriApp(
     isDarkTheme: Boolean,
     onThemeChange: (Boolean) -> Unit
 ) {
-    // Ensure sync is active when the app is showing
+
     DisposableEffect(Unit) {
         userLibraryRepository.startSync()
         onDispose {
