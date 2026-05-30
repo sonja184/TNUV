@@ -4,6 +4,7 @@ import com.google.gson.JsonElement
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
+import javax.security.auth.Subject
 
 interface BookApiService {
     @GET("search.json")
@@ -43,7 +44,8 @@ data class OpenLibraryWorkDetails(
     val description: JsonElement?, 
     val covers: List<Int>?,
     val authors: List<AuthorRole>?,
-    val authorNames: List<String>? = null
+    val authorNames: List<String>? = null,
+    val subjects: List<String>? = null
 ) {
     val descriptionText: String? get() = when {
         description == null -> null

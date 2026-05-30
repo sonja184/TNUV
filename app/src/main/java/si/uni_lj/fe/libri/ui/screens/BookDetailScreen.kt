@@ -43,10 +43,20 @@ fun BookDetailScreen(
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(bookId) {
+        isLoading = true
+
         val libraryBook = userLibraryRepository.getLibraryBook(bookId)
 
         if (libraryBook != null) {
-            bookInfo = OpenLibraryWorkDetails(
+            val apiDetails = repository.getBookDetails(bookId)
+
+            bookInfo = apiDetails?.copy(
+                title = libraryBook.title,
+                description = libraryBook.description?.let { JsonPrimitive(it) }
+                    ?: apiDetails.description,
+                authorNames = libraryBook.authorName?.let { listOf(it) }
+                    ?: apiDetails.authorNames
+            ) ?: OpenLibraryWorkDetails(
                 key = libraryBook.id,
                 title = libraryBook.title,
                 description = libraryBook.description?.let { JsonPrimitive(it) },
@@ -54,29 +64,39 @@ fun BookDetailScreen(
                 authors = libraryBook.authors.map { AuthorRole(AuthorKey(it)) },
                 authorNames = libraryBook.authorName?.let { listOf(it) }
             )
+
             currentStatus = BookStatus.valueOf(libraryBook.status)
         } else {
             val cachedFromRepo = repository.getCachedBookDetails(bookId)
+
             if (cachedFromRepo != null) {
                 bookInfo = cachedFromRepo
             } else {
                 bookInfo = repository.getBookDetails(bookId)
             }
-            
+
             if (bookInfo != null && bookInfo?.authorNames == null) {
                 val cachedDoc = repository.findDocInCache(bookId)
+
                 if (cachedDoc != null) {
-                    bookInfo = bookInfo?.copy(authorNames = cachedDoc.author_name)
+                    bookInfo = bookInfo?.copy(
+                        authorNames = cachedDoc.author_name
+                    )
                 }
             }
+
             currentStatus = BookStatus.NONE
         }
+
         isLoading = false
     }
 
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) }
+        snackbarHost = {
+            SnackbarHost(snackbarHostState)
+        }
     ) { innerPadding ->
+
         if (isLoading) {
             Box(
                 modifier = Modifier
@@ -85,7 +105,9 @@ fun BookDetailScreen(
                     .background(MaterialTheme.colorScheme.background),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                CircularProgressIndicator(
+                    color = MaterialTheme.colorScheme.primary
+                )
             }
         } else if (bookInfo != null) {
             val details = bookInfo!!
@@ -124,13 +146,12 @@ fun BookDetailScreen(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Surface(
-                    modifier = Modifier
-                        .shadow(
-                            elevation = 16.dp,
-                            shape = RoundedCornerShape(34.dp),
-                            ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f),
-                            spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.16f)
-                        ),
+                    modifier = Modifier.shadow(
+                        elevation = 16.dp,
+                        shape = RoundedCornerShape(34.dp),
+                        ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f),
+                        spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.16f)
+                    ),
                     shape = RoundedCornerShape(34.dp),
                     color = MaterialTheme.colorScheme.surface
                 ) {
@@ -156,7 +177,8 @@ fun BookDetailScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                val authorDisplay = details.authorNames?.joinToString(", ") ?: "Unknown Author"
+                val authorDisplay =
+                    details.authorNames?.joinToString(", ") ?: "Unknown Author"
 
                 Text(
                     text = authorDisplay,
@@ -186,7 +208,9 @@ fun BookDetailScreen(
 
                         Box {
                             Button(
-                                onClick = { isStatusMenuExpanded = true },
+                                onClick = {
+                                    isStatusMenuExpanded = true
+                                },
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(56.dp),
@@ -202,7 +226,9 @@ fun BookDetailScreen(
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold
                                 )
+
                                 Spacer(modifier = Modifier.width(6.dp))
+
                                 Icon(
                                     imageVector = Icons.Default.ArrowDropDown,
                                     contentDescription = null
@@ -211,7 +237,9 @@ fun BookDetailScreen(
 
                             DropdownMenu(
                                 expanded = isStatusMenuExpanded,
-                                onDismissRequest = { isStatusMenuExpanded = false }
+                                onDismissRequest = {
+                                    isStatusMenuExpanded = false
+                                }
                             ) {
                                 BookStatus.entries.forEach { status ->
                                     if (status != BookStatus.NONE) {
@@ -228,6 +256,7 @@ fun BookDetailScreen(
                                             },
                                             onClick = {
                                                 isStatusMenuExpanded = false
+
                                                 scope.launch {
                                                     try {
                                                         userLibraryRepository.updateBookStatus(
@@ -236,6 +265,7 @@ fun BookDetailScreen(
                                                             status = status,
                                                             authorName = authorDisplay
                                                         )
+
                                                         currentStatus = status
                                                     } catch (e: Exception) {
                                                         snackbarHostState.showSnackbar(
@@ -258,6 +288,7 @@ fun BookDetailScreen(
                                         },
                                         onClick = {
                                             isStatusMenuExpanded = false
+
                                             scope.launch {
                                                 try {
                                                     userLibraryRepository.updateBookStatus(
@@ -265,6 +296,7 @@ fun BookDetailScreen(
                                                         details = details,
                                                         status = BookStatus.NONE
                                                     )
+
                                                     currentStatus = BookStatus.NONE
                                                 } catch (e: Exception) {
                                                     snackbarHostState.showSnackbar(

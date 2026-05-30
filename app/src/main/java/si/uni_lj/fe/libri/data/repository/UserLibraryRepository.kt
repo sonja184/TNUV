@@ -11,10 +11,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.tasks.await
 import si.uni_lj.fe.libri.data.api.OpenLibraryWorkDetails
+import kotlinx.coroutines.tasks.await
 
 enum class BookStatus {
     READ, CURRENTLY_READING, WANT_TO_READ, NONE;
-    
+
     companion object {
         fun fromString(status: String?): BookStatus {
             if (status == null) return NONE
@@ -40,7 +41,8 @@ data class LibraryBook(
     val coverUrl: String? = null,
     val description: String? = null,
     val authors: List<String> = emptyList(),
-    val status: String = "NONE"
+    val status: String = "NONE",
+    val genres: List<String> = emptyList()
 ) {
     @get:Exclude
     val bookStatus: BookStatus get() = BookStatus.fromString(status)
@@ -57,7 +59,7 @@ class UserLibraryRepository {
     // Flow to expose sync errors to the UI
     private val _syncError = MutableStateFlow<String?>(null)
     val syncError: StateFlow<String?> = _syncError.asStateFlow()
-    
+
     private var listenerRegistration: ListenerRegistration? = null
     private var currentUserId: String? = null
 
@@ -74,15 +76,15 @@ class UserLibraryRepository {
     fun startSync() {
         val userId = auth.currentUser?.uid
         if (userId == currentUserId && listenerRegistration != null) return
-        
+
         stopSync()
         currentUserId = userId
         _syncError.value = null
-        
+
         if (userId != null) {
             Log.i("UserLibraryRepository", "Starting sync for: $userId")
             val collection = usersCollection.document(userId).collection("books")
-            
+
             listenerRegistration = collection.addSnapshotListener { snapshot, error ->
                 if (error != null) {
                     if (error.code == FirebaseFirestoreException.Code.PERMISSION_DENIED) {
@@ -93,7 +95,7 @@ class UserLibraryRepository {
                     _libraryBooks.value = emptyList()
                     return@addSnapshotListener
                 }
-                
+
                 if (snapshot != null) {
                     _syncError.value = null
                     val books = snapshot.toObjects(LibraryBook::class.java)
@@ -129,7 +131,7 @@ class UserLibraryRepository {
                 } else {
                     details.authorNames?.joinToString(", ")
                 }
-                
+
                 if (finalAuthorName.isNullOrBlank() || finalAuthorName == "Unknown Author") {
                     val existing = _libraryBooks.value?.find { it.id == bookId }
                     if (!existing?.authorName.isNullOrBlank()) {
@@ -146,7 +148,8 @@ class UserLibraryRepository {
                     authors = details.authors?.map {
                         it.author.key.removePrefix("/authors/").removePrefix("authors/")
                     } ?: emptyList(),
-                    status = status.name
+                    status = status.name,
+                    genres = details.subjects?.take(5) ?: emptyList()
                 )
                 collection.document(bookId).set(book).await()
             }
@@ -166,4 +169,33 @@ class UserLibraryRepository {
             null
         }
     }
+    suspend fun getFavoriteGenre(): String {
+
+        val uid = auth.currentUser?.uid ?: return "No genre yet"
+
+        return try {
+
+            val books = usersCollection
+                .document(uid)
+                .collection("books")
+                .get()
+                .await()
+                .toObjects(LibraryBook::class.java)
+
+            books
+                .flatMap { it.genres }
+                .groupingBy { it }
+                .eachCount()
+                .maxByOrNull { it.value }
+                ?.key
+                ?: "No genre yet"
+
+        } catch (e: Exception) {
+
+            "No genre yet"
+        }
+    }
+
+
+
 }

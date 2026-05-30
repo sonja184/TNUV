@@ -40,6 +40,7 @@ fun ProfileScreen(
     // This ensures real-time updates and is more idiomatic for StateFlow.
     val allBooksNullable by userLibraryRepository.libraryBooks.collectAsState()
     val allBooks = allBooksNullable ?: emptyList()
+    var favoriteGenre by remember { mutableStateOf("No genre yet") }
 
     // Derived state for counters - updates automatically when allBooks changes
     val readCount = remember(allBooks) {
@@ -50,6 +51,9 @@ fun ProfileScreen(
     }
     val savedCount = remember(allBooks) {
         allBooks.count { it.bookStatus == BookStatus.WANT_TO_READ }
+    }
+    LaunchedEffect(allBooks) {
+        favoriteGenre = userLibraryRepository.getFavoriteGenre()
     }
 
     Column(
@@ -70,6 +74,7 @@ fun ProfileScreen(
         ProfileInfoCard(
             name = name,
             email = email,
+            favoriteGenre = favoriteGenre,
             isDarkTheme = isDarkTheme,
             onThemeChange = onThemeChange
         )
@@ -191,6 +196,7 @@ private fun ProfileHeader(
 private fun ProfileInfoCard(
     name: String,
     email: String,
+    favoriteGenre: String,
     isDarkTheme: Boolean,
     onThemeChange: (Boolean) -> Unit
 ) {
@@ -228,7 +234,7 @@ private fun ProfileInfoCard(
             ProfileInfoRow(
                 icon = Icons.Default.Star,
                 label = "Favorite genre",
-                value = "Fiction"
+                value = favoriteGenre
             )
 
             ProfileDivider()
