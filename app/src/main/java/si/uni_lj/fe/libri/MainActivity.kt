@@ -10,9 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -32,6 +30,8 @@ import si.uni_lj.fe.libri.data.repository.BookRepository
 import si.uni_lj.fe.libri.data.repository.UserLibraryRepository
 import si.uni_lj.fe.libri.ui.screens.*
 import si.uni_lj.fe.libri.ui.theme.LibriTheme
+import si.uni_lj.fe.libri.ui.theme.LibriGreen
+import si.uni_lj.fe.libri.ui.theme.LibriOrange
 import com.google.firebase.firestore.FirebaseFirestore
 
 class MainActivity : ComponentActivity() {
@@ -199,7 +199,8 @@ fun LibriApp(
                     label = {
                         Text(
                             text = destination.label,
-                            fontWeight = FontWeight.SemiBold
+                            fontWeight = FontWeight.SemiBold,
+                            color = if (isDarkTheme) LibriOrange else LibriGreen
                         )
                     },
                     selected = currentRoute == destination.route,

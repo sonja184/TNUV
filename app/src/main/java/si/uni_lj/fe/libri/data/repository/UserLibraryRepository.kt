@@ -56,7 +56,6 @@ class UserLibraryRepository {
     private val _libraryBooks = MutableStateFlow<List<LibraryBook>?>(null)
     val libraryBooks: StateFlow<List<LibraryBook>?> = _libraryBooks.asStateFlow()
 
-    // Flow to expose sync errors to the UI
     private val _syncError = MutableStateFlow<String?>(null)
     val syncError: StateFlow<String?> = _syncError.asStateFlow()
 

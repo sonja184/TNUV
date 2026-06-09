@@ -45,9 +45,5 @@ class BookRepository(private val apiService: BookApiService) {
     }
 
     fun getCachedBookDetails(workId: String): OpenLibraryWorkDetails? = detailsCache[workId]
-    
-    fun clearCache() {
-        searchCache.clear()
-        detailsCache.clear()
-    }
+
 }
