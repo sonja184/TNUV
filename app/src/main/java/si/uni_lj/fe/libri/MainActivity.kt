@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -15,6 +16,7 @@ import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffo
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -175,30 +177,31 @@ fun LibriApp(
             AppDestinations.entries.forEach { destination ->
                 item(
                     icon = {
+                        val label = stringResource(destination.labelRes)
                         when (destination) {
                             AppDestinations.HOME_PAGE -> {
                                 Icon(
                                     imageVector = Icons.Outlined.Home,
-                                    contentDescription = destination.label
+                                    contentDescription = label
                                 )
                             }
                             AppDestinations.MY_LIBRARY -> {
                                 Icon(
                                     imageVector = Icons.Outlined.FavoriteBorder,
-                                    contentDescription = destination.label
+                                    contentDescription = label
                                 )
                             }
                             AppDestinations.MY_PROFILE -> {
                                 Icon(
                                     imageVector = Icons.Outlined.Person,
-                                    contentDescription = destination.label
+                                    contentDescription = label
                                 )
                             }
                         }
                     },
                     label = {
                         Text(
-                            text = destination.label,
+                            text = stringResource(destination.labelRes),
                             fontWeight = FontWeight.SemiBold,
                             color = if (isDarkTheme) LibriOrange else LibriGreen
                         )
@@ -280,10 +283,10 @@ fun LibriApp(
 }
 
 enum class AppDestinations(
-    val label: String,
+    @StringRes val labelRes: Int,
     val route: String
 ) {
-    HOME_PAGE("Home", "home"),
-    MY_LIBRARY("Library", "library"),
-    MY_PROFILE("Profile", "profile")
+    HOME_PAGE(R.string.nav_home, "home"),
+    MY_LIBRARY(R.string.nav_library, "library"),
+    MY_PROFILE(R.string.nav_profile, "profile")
 }

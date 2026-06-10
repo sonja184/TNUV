@@ -28,7 +28,7 @@ data class OpenLibrarySearchResponse(
 )
 
 data class Doc(
-    val key: String, // e.g., "/works/OL1234W"
+    val key: String, 
     val title: String,
     val author_name: List<String>?,
     val cover_i: Int?,

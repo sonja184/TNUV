@@ -9,15 +9,16 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import si.uni_lj.fe.libri.R
 
 @Composable
 fun BookCard(
@@ -50,7 +51,7 @@ fun BookCard(
 
             AsyncImage(
                 model = imageUrl,
-                contentDescription = "Cover for $title",
+                contentDescription = stringResource(R.string.cover_content_description, title),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(210.dp)

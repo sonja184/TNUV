@@ -15,11 +15,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
+import si.uni_lj.fe.libri.R
+import si.uni_lj.fe.libri.R.*
+import si.uni_lj.fe.libri.R.string.*
 import si.uni_lj.fe.libri.data.api.Doc
 import si.uni_lj.fe.libri.data.repository.BookRepository
 import si.uni_lj.fe.libri.ui.components.BookCard
@@ -82,7 +86,7 @@ fun HomeScreen(
 
             if (searchQuery.isNotBlank()) {
                 item {
-                    SectionTitle("Search results")
+                    SectionTitle(stringResource(search_results))
                     Spacer(modifier = Modifier.height(12.dp))
                 }
 
@@ -99,7 +103,7 @@ fun HomeScreen(
                     }
                 } else if (searchResults.isEmpty()) {
                     item {
-                        EmptyState("No books found. Try another title or author.")
+                        EmptyState(stringResource(no_books_found))
                     }
                 } else {
                     items(searchResults) { book ->
@@ -115,7 +119,7 @@ fun HomeScreen(
                 }
             } else {
                 item {
-                    SectionTitle("Most popular")
+                    SectionTitle(stringResource(most_popular))
                     Spacer(modifier = Modifier.height(12.dp))
 
                     LazyRow(
@@ -187,7 +191,7 @@ private fun HomeHeader(
             modifier = Modifier.padding(22.dp)
         ) {
             Text(
-                text = "Discover books",
+                text = stringResource(discover_books),
                 style = MaterialTheme.typography.headlineLarge,
                 color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.ExtraBold
@@ -196,7 +200,7 @@ private fun HomeHeader(
             Spacer(modifier = Modifier.height(6.dp))
 
             Text(
-                text = "Find stories, authors and genres you will love.",
+                text = stringResource(discover_books_subtitle),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -206,7 +210,7 @@ private fun HomeHeader(
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = onSearchChange,
-                placeholder = { Text("Search books") },
+                placeholder = { Text(stringResource(search_books_placeholder)) },
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Default.Search,

@@ -16,9 +16,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import si.uni_lj.fe.libri.R
+import si.uni_lj.fe.libri.R.string
+import si.uni_lj.fe.libri.R.string.*
 import si.uni_lj.fe.libri.data.repository.BookStatus
 import si.uni_lj.fe.libri.data.repository.UserLibraryRepository
 import si.uni_lj.fe.libri.ui.components.BookCard
@@ -38,9 +42,9 @@ fun LibraryScreen(
     val syncError by userLibraryRepository.syncError.collectAsState()
 
     val sections = listOf(
-        "Currently reading" to BookStatus.CURRENTLY_READING,
-        "Read" to BookStatus.READ,
-        "Want to read" to BookStatus.WANT_TO_READ
+        stringResource(currently_reading) to BookStatus.CURRENTLY_READING,
+        stringResource(read) to BookStatus.READ,
+        stringResource(want_to_read) to BookStatus.WANT_TO_READ
     )
 
     if (syncError != null) {
@@ -59,7 +63,7 @@ fun LibraryScreen(
                 CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    text = "Connecting to library...",
+                    text = stringResource(connecting_library),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -102,7 +106,7 @@ fun LibraryScreen(
                             items(books, key = { it.id }) { book ->
                                 BookCard(
                                     title = book.title,
-                                    author = book.authorName ?: "Unknown Author",
+                                    author = book.authorName ?: stringResource(unknown_author),
                                     imageUrl = book.coverUrl,
                                     onClick = { onCardClick(book.id) }
                                 )
@@ -146,14 +150,14 @@ private fun PermissionErrorState(message: String, onRetry: () -> Unit) {
         }
         Spacer(modifier = Modifier.height(20.dp))
         Text(
-            text = "Access Denied",
+            text = stringResource(access_denied),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground
         )
         Spacer(modifier = Modifier.height(12.dp))
         Text(
-            text = "Your Firestore Security Rules are blocking the app. Please update them in the Firebase Console.",
+            text = stringResource(access_denied_rules),
             textAlign = TextAlign.Center,
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -165,11 +169,11 @@ private fun PermissionErrorState(message: String, onRetry: () -> Unit) {
         ) {
             Icon(Icons.Default.Refresh, contentDescription = null)
             Spacer(Modifier.width(8.dp))
-            Text("Retry Connection")
+            Text(stringResource(retry_connection))
         }
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            text = "Technical info: $message",
+            text = stringResource(technical_info, message),
             textAlign = TextAlign.Center,
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.error
@@ -195,7 +199,7 @@ private fun LibraryHeader() {
             modifier = Modifier.padding(22.dp)
         ) {
             Text(
-                text = "My Library",
+                text = stringResource(my_library),
                 style = MaterialTheme.typography.headlineLarge,
                 color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.ExtraBold
@@ -204,7 +208,7 @@ private fun LibraryHeader() {
             Spacer(modifier = Modifier.height(6.dp))
 
             Text(
-                text = "Track what you are reading, finished, and planning to read.",
+                text = stringResource(library_subtitle),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -282,7 +286,7 @@ private fun EmptyLibraryMessage() {
             Spacer(modifier = Modifier.height(18.dp))
 
             Text(
-                text = "Your library is empty",
+                text = stringResource(library_empty),
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.Bold
@@ -291,7 +295,7 @@ private fun EmptyLibraryMessage() {
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "Add books from the home page to start building your personal collection.",
+                text = stringResource(library_empty_subtitle),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

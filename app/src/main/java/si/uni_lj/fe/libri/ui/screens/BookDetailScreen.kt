@@ -15,11 +15,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.google.gson.JsonPrimitive
 import kotlinx.coroutines.launch
+import si.uni_lj.fe.libri.R
 import si.uni_lj.fe.libri.data.api.AuthorKey
 import si.uni_lj.fe.libri.data.api.AuthorRole
 import si.uni_lj.fe.libri.data.api.OpenLibraryWorkDetails
@@ -41,6 +43,10 @@ fun BookDetailScreen(
 
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+    
+    val accessDeniedConsoleMsg = stringResource(R.string.access_denied_snackbar)
+    val accessDeniedGenericMsg = stringResource(R.string.access_denied_generic)
+    val unknownAuthor = stringResource(R.string.unknown_author)
 
     LaunchedEffect(bookId) {
         isLoading = true
@@ -137,7 +143,7 @@ fun BookDetailScreen(
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
+                            contentDescription = stringResource(R.string.back),
                             tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
@@ -157,7 +163,7 @@ fun BookDetailScreen(
                 ) {
                     AsyncImage(
                         model = displayCoverUrl,
-                        contentDescription = "Cover for ${details.title}",
+                        contentDescription = stringResource(R.string.cover_content_description, details.title),
                         modifier = Modifier
                             .size(width = 220.dp, height = 320.dp)
                             .clip(RoundedCornerShape(30.dp))
@@ -178,7 +184,7 @@ fun BookDetailScreen(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 val authorDisplay =
-                    details.authorNames?.joinToString(", ") ?: "Unknown Author"
+                    details.authorNames?.joinToString(", ") ?: unknownAuthor
 
                 Text(
                     text = authorDisplay,
@@ -198,7 +204,7 @@ fun BookDetailScreen(
                         modifier = Modifier.padding(22.dp)
                     ) {
                         Text(
-                            text = "Reading status",
+                            text = stringResource(R.string.reading_status),
                             style = MaterialTheme.typography.titleLarge,
                             color = MaterialTheme.colorScheme.onSurface,
                             fontWeight = FontWeight.Bold
@@ -218,10 +224,10 @@ fun BookDetailScreen(
                             ) {
                                 Text(
                                     text = when (currentStatus) {
-                                        BookStatus.READ -> "Read"
-                                        BookStatus.CURRENTLY_READING -> "Currently Reading"
-                                        BookStatus.WANT_TO_READ -> "Want to Read"
-                                        BookStatus.NONE -> "Add to Library"
+                                        BookStatus.READ -> stringResource(R.string.read)
+                                        BookStatus.CURRENTLY_READING -> stringResource(R.string.currently_reading_status)
+                                        BookStatus.WANT_TO_READ -> stringResource(R.string.want_to_read_status)
+                                        BookStatus.NONE -> stringResource(R.string.add_to_library)
                                     },
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold
@@ -247,9 +253,9 @@ fun BookDetailScreen(
                                             text = {
                                                 Text(
                                                     when (status) {
-                                                        BookStatus.READ -> "Read"
-                                                        BookStatus.CURRENTLY_READING -> "Currently Reading"
-                                                        BookStatus.WANT_TO_READ -> "Want to Read"
+                                                        BookStatus.READ -> stringResource(R.string.read)
+                                                        BookStatus.CURRENTLY_READING -> stringResource(R.string.currently_reading_status)
+                                                        BookStatus.WANT_TO_READ -> stringResource(R.string.want_to_read_status)
                                                         else -> ""
                                                     }
                                                 )
@@ -268,9 +274,7 @@ fun BookDetailScreen(
 
                                                         currentStatus = status
                                                     } catch (e: Exception) {
-                                                        snackbarHostState.showSnackbar(
-                                                            "Access Denied: Check Firestore Rules in Console."
-                                                        )
+                                                        snackbarHostState.showSnackbar(accessDeniedConsoleMsg)
                                                     }
                                                 }
                                             }
@@ -282,7 +286,7 @@ fun BookDetailScreen(
                                     DropdownMenuItem(
                                         text = {
                                             Text(
-                                                text = "Remove from Library",
+                                                text = stringResource(R.string.remove_from_library),
                                                 color = MaterialTheme.colorScheme.error
                                             )
                                         },
@@ -299,9 +303,7 @@ fun BookDetailScreen(
 
                                                     currentStatus = BookStatus.NONE
                                                 } catch (e: Exception) {
-                                                    snackbarHostState.showSnackbar(
-                                                        "Access Denied: Check Firestore Rules."
-                                                    )
+                                                    snackbarHostState.showSnackbar(accessDeniedGenericMsg)
                                                 }
                                             }
                                         }
@@ -323,7 +325,7 @@ fun BookDetailScreen(
                         modifier = Modifier.padding(24.dp)
                     ) {
                         Text(
-                            text = "Description",
+                            text = stringResource(R.string.description),
                             style = MaterialTheme.typography.titleLarge,
                             color = MaterialTheme.colorScheme.onSurface,
                             fontWeight = FontWeight.Bold
@@ -332,7 +334,7 @@ fun BookDetailScreen(
                         Spacer(modifier = Modifier.height(14.dp))
 
                         Text(
-                            text = details.descriptionText ?: "No description available.",
+                            text = details.descriptionText ?: stringResource(R.string.no_description),
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurface
                         )
@@ -350,7 +352,7 @@ fun BookDetailScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "Failed to load book details.",
+                    text = stringResource(R.string.failed_load_details),
                     color = MaterialTheme.colorScheme.error
                 )
             }

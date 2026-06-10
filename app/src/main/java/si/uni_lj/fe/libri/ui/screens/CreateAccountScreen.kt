@@ -9,11 +9,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.UserProfileChangeRequest
+import si.uni_lj.fe.libri.R
+import si.uni_lj.fe.libri.R.string.*
 import si.uni_lj.fe.libri.ui.theme.ErrorRed
 
 @Composable
@@ -28,6 +31,14 @@ fun CreateAccountScreen(
     var errorMessage by remember { mutableStateOf("") }
 
     val auth = FirebaseAuth.getInstance()
+    
+    val nameError = stringResource(error_enter_name)
+    val emailError = stringResource(error_enter_email)
+    val passwordError = stringResource(error_enter_password)
+    val confirmError = stringResource(error_confirm_password)
+    val matchError = stringResource(error_passwords_dont_match)
+    val nameNotSavedError = stringResource(error_name_not_saved)
+    val accountFailedError = stringResource(account_creation_failed)
 
     Column(
         modifier = Modifier
@@ -40,7 +51,7 @@ fun CreateAccountScreen(
         Spacer(modifier = Modifier.height(10.dp))
 
         Text(
-            text = "Create account",
+            text = stringResource(create_account),
             style = MaterialTheme.typography.headlineLarge,
             color = MaterialTheme.colorScheme.onBackground,
             fontWeight = FontWeight.ExtraBold
@@ -49,7 +60,7 @@ fun CreateAccountScreen(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Join Libri and build your personal reading space.",
+            text = stringResource(create_account_subtitle),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -74,7 +85,7 @@ fun CreateAccountScreen(
             ) {
 
                 Text(
-                    text = "Sign up",
+                    text = stringResource(sign_up),
                     style = MaterialTheme.typography.headlineSmall,
                     color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Bold
@@ -85,13 +96,9 @@ fun CreateAccountScreen(
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-
-                    label = { Text("Name") },
-
+                    label = { Text(stringResource(R.string.name)) },
                     singleLine = true,
-
                     shape = RoundedCornerShape(18.dp),
-
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = MaterialTheme.colorScheme.primary,
                         unfocusedBorderColor = MaterialTheme.colorScheme.outline,
@@ -99,7 +106,6 @@ fun CreateAccountScreen(
                         unfocusedContainerColor = MaterialTheme.colorScheme.background,
                         cursorColor = MaterialTheme.colorScheme.primary
                     ),
-
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -108,13 +114,9 @@ fun CreateAccountScreen(
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it },
-
-                    label = { Text("Email") },
-
+                    label = { Text(stringResource(R.string.email)) },
                     singleLine = true,
-
                     shape = RoundedCornerShape(18.dp),
-
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = MaterialTheme.colorScheme.primary,
                         unfocusedBorderColor = MaterialTheme.colorScheme.outline,
@@ -122,7 +124,6 @@ fun CreateAccountScreen(
                         unfocusedContainerColor = MaterialTheme.colorScheme.background,
                         cursorColor = MaterialTheme.colorScheme.primary
                     ),
-
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -131,15 +132,10 @@ fun CreateAccountScreen(
                 OutlinedTextField(
                     value = password,
                     onValueChange = { password = it },
-
-                    label = { Text("Password") },
-
+                    label = { Text(stringResource(R.string.password)) },
                     singleLine = true,
-
                     visualTransformation = PasswordVisualTransformation(),
-
                     shape = RoundedCornerShape(18.dp),
-
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = MaterialTheme.colorScheme.primary,
                         unfocusedBorderColor = MaterialTheme.colorScheme.outline,
@@ -147,7 +143,6 @@ fun CreateAccountScreen(
                         unfocusedContainerColor = MaterialTheme.colorScheme.background,
                         cursorColor = MaterialTheme.colorScheme.primary
                     ),
-
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -156,15 +151,10 @@ fun CreateAccountScreen(
                 OutlinedTextField(
                     value = confirmPassword,
                     onValueChange = { confirmPassword = it },
-
-                    label = { Text("Confirm Password") },
-
+                    label = { Text(stringResource(confirm_password)) },
                     singleLine = true,
-
                     visualTransformation = PasswordVisualTransformation(),
-
                     shape = RoundedCornerShape(18.dp),
-
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = MaterialTheme.colorScheme.primary,
                         unfocusedBorderColor = MaterialTheme.colorScheme.outline,
@@ -172,14 +162,11 @@ fun CreateAccountScreen(
                         unfocusedContainerColor = MaterialTheme.colorScheme.background,
                         cursorColor = MaterialTheme.colorScheme.primary
                     ),
-
                     modifier = Modifier.fillMaxWidth()
                 )
 
                 if (errorMessage.isNotEmpty()) {
-
                     Spacer(modifier = Modifier.height(14.dp))
-
                     Text(
                         text = errorMessage,
                         color = ErrorRed,
@@ -192,61 +179,43 @@ fun CreateAccountScreen(
                 Button(
                     onClick = {
                         errorMessage = when {
-                            name.isBlank() -> "Please enter your name."
-                            email.isBlank() -> "Please enter your email."
-                            password.isBlank() -> "Please enter your password."
-                            confirmPassword.isBlank() -> "Please confirm your password."
-                            password != confirmPassword -> "Passwords do not match."
-
+                            name.isBlank() -> nameError
+                            email.isBlank() -> emailError
+                            password.isBlank() -> passwordError
+                            confirmPassword.isBlank() -> confirmError
+                            password != confirmPassword -> matchError
                             else -> {
                                 auth.createUserWithEmailAndPassword(email, password)
                                     .addOnCompleteListener { task ->
-
                                         if (task.isSuccessful) {
-
                                             val user = auth.currentUser
-
-                                            val profileUpdates =
-                                                UserProfileChangeRequest.Builder()
-                                                    .setDisplayName(name)
-                                                    .build()
+                                            val profileUpdates = UserProfileChangeRequest.Builder()
+                                                .setDisplayName(name)
+                                                .build()
 
                                             user?.updateProfile(profileUpdates)
                                                 ?.addOnCompleteListener { updateTask ->
-
                                                     if (updateTask.isSuccessful) {
                                                         onAccountCreated()
-
                                                     } else {
-
-                                                        errorMessage =
-                                                            updateTask.exception?.message
-                                                                ?: "Name not saved."
+                                                        errorMessage = updateTask.exception?.message ?: nameNotSavedError
                                                     }
                                                 }
-
                                         } else {
-
-                                            errorMessage =
-                                                task.exception?.message
-                                                    ?: "Account creation failed."
+                                            errorMessage = task.exception?.message ?: accountFailedError
                                         }
                                     }
-
                                 ""
                             }
                         }
                     },
-
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
-
                     shape = RoundedCornerShape(18.dp)
                 ) {
-
                     Text(
-                        text = "Create account",
+                        text = stringResource(create_account),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
@@ -258,9 +227,8 @@ fun CreateAccountScreen(
                     onClick = onBackToLoginClick,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-
                     Text(
-                        text = "Already have an account? Log in",
+                        text = stringResource(back_to_login),
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.SemiBold
                     )

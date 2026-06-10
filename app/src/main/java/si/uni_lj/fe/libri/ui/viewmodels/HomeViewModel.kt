@@ -46,7 +46,6 @@ class HomeViewModel(private val repository: BookRepository) : ViewModel() {
     }
 
     fun loadAllGenres(forceRefresh: Boolean = false) {
-        // Only show full loading spinner if we have no data at all
         val needsFullLoading = genreBooks.isEmpty() || forceRefresh
 
         viewModelScope.launch {
@@ -80,7 +79,6 @@ class HomeViewModel(private val repository: BookRepository) : ViewModel() {
     }
 
     private fun performSearch(query: String) {
-        // Check cache first for instant search results
         val cached = repository.getCachedSearch(query)
         if (cached != null) {
             searchResults = cached

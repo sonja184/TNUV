@@ -17,9 +17,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.google.firebase.auth.FirebaseAuth
+import si.uni_lj.fe.libri.R
+import si.uni_lj.fe.libri.R.string.*
 import si.uni_lj.fe.libri.data.repository.BookStatus
 import si.uni_lj.fe.libri.data.repository.UserLibraryRepository
 
@@ -33,14 +36,15 @@ fun ProfileScreen(
     val auth = FirebaseAuth.getInstance()
     val user = auth.currentUser
 
-    val name = user?.displayName ?: "Guest User"
-    val email = user?.email ?: "No email"
+    val name = user?.displayName ?: stringResource(guest_user)
+    val email = user?.email ?: stringResource(no_email)
 
     // Use collectAsState directly on the StateFlow property.
     // This ensures real-time updates and is more idiomatic for StateFlow.
     val allBooksNullable by userLibraryRepository.libraryBooks.collectAsState()
     val allBooks = allBooksNullable ?: emptyList()
-    var favoriteGenre by remember { mutableStateOf("No genre yet") }
+    var favoriteGenre by remember { mutableStateOf("") }
+    val noGenre = stringResource(no_genre)
 
     // Derived state for counters - updates automatically when allBooks changes
     val readCount = remember(allBooks) {
@@ -53,7 +57,8 @@ fun ProfileScreen(
         allBooks.count { it.bookStatus == BookStatus.WANT_TO_READ }
     }
     LaunchedEffect(allBooks) {
-        favoriteGenre = userLibraryRepository.getFavoriteGenre()
+        val fav = userLibraryRepository.getFavoriteGenre()
+        favoriteGenre = if (fav.isBlank()) noGenre else fav
     }
 
     Column(
@@ -86,19 +91,19 @@ fun ProfileScreen(
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             StatCard(
-                title = "Read",
+                title = stringResource(read),
                 value = readCount.toString(),
                 modifier = Modifier.weight(1f)
             )
 
             StatCard(
-                title = "Reading",
+                title = stringResource(reading),
                 value = currentlyReadingCount.toString(),
                 modifier = Modifier.weight(1f)
             )
 
             StatCard(
-                title = "Saved",
+                title = stringResource(saved),
                 value = savedCount.toString(),
                 modifier = Modifier.weight(1f)
             )
@@ -127,7 +132,7 @@ fun ProfileScreen(
             Spacer(modifier = Modifier.width(8.dp))
 
             Text(
-                text = "Log out",
+                text = stringResource(log_out),
                 fontWeight = FontWeight.Bold
             )
         }
@@ -217,7 +222,7 @@ private fun ProfileInfoCard(
         ) {
             ProfileInfoRow(
                 icon = Icons.Default.Person,
-                label = "Username",
+                label = stringResource(username),
                 value = name
             )
 
@@ -225,7 +230,7 @@ private fun ProfileInfoCard(
 
             ProfileInfoRow(
                 icon = Icons.Default.Email,
-                label = "Email",
+                label = stringResource(R.string.email),
                 value = email
             )
 
@@ -233,7 +238,7 @@ private fun ProfileInfoCard(
 
             ProfileInfoRow(
                 icon = Icons.Default.Star,
-                label = "Favorite genre",
+                label = stringResource(favorite_genre_label),
                 value = favoriteGenre
             )
 
@@ -257,13 +262,13 @@ private fun ProfileInfoCard(
 
                     Column {
                         Text(
-                            text = "Dark mode",
+                            text = stringResource(dark_mode),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
 
                         Text(
-                            text = if (isDarkTheme) "On" else "Off",
+                            text = if (isDarkTheme) stringResource(on) else stringResource(off),
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurface,
                             fontWeight = FontWeight.SemiBold
